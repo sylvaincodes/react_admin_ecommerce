@@ -1,12 +1,27 @@
+import React from 'react'
+import { Switch, BrowserRouter as Router, Routes, Route } from "react-router-dom";
 
-function App() {
+// // Import all aroutes here
+import { publicRoutes } from './routes'
+
+// import css
+import './assets/scss/style.scss';
+
+const App = () => {
   return (
-    <div className="App">
-      <div>
-        <h1>hqgsjhgsdjhqgsjhd</h1>
-      </div>
-    </div>
-  );
+     <React.Fragment>
+        <Router>
+          <Routes>
+            {
+              publicRoutes.map( (route ,key) => (
+                <Route key={key}  path={route.path} element={<route.component/>} />
+             ))
+            }
+          </Routes>
+        </Router>
+     </React.Fragment>
+  )
 }
+
 
 export default App;
