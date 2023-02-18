@@ -1,2 +1,2 @@
-# shopify_admin
-Partie admin du site shopify fait avec React js
+# Ecommerce React Admin
+Admin dashboard fait avec React js
