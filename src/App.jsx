@@ -1,5 +1,5 @@
 import React from 'react'
-import { Switch, BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 
 // // Import all aroutes here
 import { publicRoutes } from './routes'
