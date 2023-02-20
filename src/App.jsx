@@ -1,8 +1,9 @@
 import React from 'react'
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 
 // // Import all aroutes here
-import { publicRoutes } from './routes'
+import { publicRoutes,authProtectedRoutes } from './routes'
+import Authmiddleware from './routes/route';
 
 // import css
 import './assets/scss/style.scss';
@@ -12,11 +13,27 @@ const App = () => {
      <React.Fragment>
         <Router>
           <Routes>
+
+          <Route exact path='/' element={<Authmiddleware/>}>
             {
-              publicRoutes.map( (route ,key) => (
-                <Route key={key}  path={route.path} element={<route.component/>} />
+              authProtectedRoutes.map( (route ,key) => (
+                <Route exact key={key}  path={route.path} element={<route.component/>} />
              ))
             }
+          </Route>
+
+            {
+              publicRoutes.map( (route ,key) => (
+                <Route 
+                key={key}
+                path={route.path} element={<route.component/>}
+                                
+                />
+             ))
+            }
+                      
+
+
           </Routes>
         </Router>
      </React.Fragment>

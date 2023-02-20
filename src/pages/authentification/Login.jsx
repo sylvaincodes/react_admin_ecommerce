@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 
 import {
   Button,
@@ -13,6 +13,7 @@ import {
   InputGroup,
   Label,
   Row,
+  Alert,
 } from "reactstrap";
 
 import login_header from "../../assets/images/profile-img.png";
@@ -21,50 +22,71 @@ import { Link } from "react-router-dom";
 import { useFormik } from "formik";
 import * as Yup from "yup";
 
-import accessToken from '../../helpers/jwt/token';
+import accessToken from "../../helpers/jwt/token";
+import { useSelector, useDispatch } from "react-redux";
+import {
+  loginError,
+  loginSuccess,
+  loginUser,
+  saveToken,
+} from "../../redux/auth/login/actions";
+import LoadingSpinner from "../../components/Loading/LoadingSpinner";
 
-const Login = () => {
+const Login = (props) => {
 
-  const [token, setToken] = useState('');
-  // const [password, setPassword] = useState('');
+  document.title = "Login | Admin Ecommerce";
+  
+  console.log(localStorage.getItem("authUser"));
 
-  const loginAuth = async ( email , password ) =>{
-    await fetch('http://127.0.0.1:8000/api/login',
-      {
-        method : 'POST',
-        body: JSON.stringify({
-          email: email,
-          password: password
-        }),
-        headers:{
-          'Content-type':  'application/json'
-        }}
-      )
-      .then((response) => 
-          response.json()
-      )
-      .then( (data) => {
-        console.log(data); 
-        if (data.status=="200") {
-          // go
+  const dispatch = useDispatch();
+
+  const isLoading = useSelector((state) => state.login.loading);
+  const error = useSelector((state) => state.login.error);
+  const token = useSelector((state) => state.login.token);
+
+  const loginAuth = async (email, password) => {
+    await fetch("http://127.0.0.1:8000/api/login", {
+      method: "POST",
+      body: JSON.stringify({
+        email: email,
+        password: password,
+      }),
+      headers: {
+        "Content-type": "application/json",
+      },
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        dispatch(loginSuccess({ email, password }, props.history));
+        if (data.status == "200") {
+
+          localStorage.setItem("token", data.token);
+          localStorage.setItem("authUser", JSON.stringify(data.user));
+          
+
+         } else {
+          dispatch(loginError(data.message, props.history));
         }
+      })
+      .catch(() => {
+        dispatch(loginError("Serveur indisponible", props.history));
       });
-  }
+  };
 
   const [auth, seAuths] = useState({});
 
-  useEffect(() => {
-    fetch('http://127.0.0.1:8000/api/users',{
-      headers:{
-        'Authorization': token
-      }
-    })
-       .then((response) => response.json())
-       .then((data) => {
-          console.log(data);
-          // seAuths(data);
-       });
- }, []);
+  //   useEffect(() => {
+  //     fetch('http://127.0.0.1:8000/api/users',{
+  //       headers:{
+  //         'Authorization': token
+  //       }
+  //     })
+  //        .then((response) => response.json())
+  //        .then((data) => {
+  //           console.log(data);
+  //           // seAuths(data);
+  //        });
+  //  }, []);
 
   const loginValidation = useFormik({
     initialValues: {
@@ -76,17 +98,18 @@ const Login = () => {
       password: Yup.string().required("Entrer votre mot de passe"),
     }),
     onSubmit: (values) => {
-      loginAuth(values.email,values.password);
-      // console.log(values);
+      loginAuth(values.email, values.password);
+      dispatch(loginUser(values, props.history));
     },
   });
 
   return (
     <>
       <div className="login mt-5 pt-5">
+        <LoadingSpinner isLoading={isLoading} />
         <Container>
           <Row className="justify-content-center">
-            <Col lg={6} md={8} sm={10} xs={10}>
+            <Col lg={4} md={8} sm={10} xs={10}>
               <Card className="overflow-hidden">
                 <CardHeader className="bg-primary">
                   <Row className="py-3 align-items-center">
@@ -110,6 +133,7 @@ const Login = () => {
                   </div>
                   <Container className="py-5">
                     <Form onSubmit={loginValidation.handleSubmit}>
+                      {error ? <Alert color="danger">{error}</Alert> : token ? <Alert color="success">Connecté</Alert> : null }
                       <div className="mb-4">
                         <Label>Email</Label>
                         <Input
@@ -160,7 +184,7 @@ const Login = () => {
                       </InputGroup>
 
                       <div className="mt-3 d-grid">
-                        <Button type="submit" className="bg-primary" >
+                        <Button type="submit" className="bg-primary">
                           Se connecter
                         </Button>
                       </div>
