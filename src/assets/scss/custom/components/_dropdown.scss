@@ -1,0 +1,42 @@
+.dropdown {
+  position: static;
+
+  .dropdown-menumenu {
+    left: 0;
+    position: absolute;
+    width: max-content;
+    padding: 10px;
+    box-shadow: $box-shadow;
+  }
+
+  .dropdown-menu {
+    box-shadow: $box-shadow-lg;
+    animation-name: DropDownSlide;
+    animation-duration: 0.3s;
+    animation-fill-mode: both;
+    margin: 0;
+    position: absolute;
+    z-index: 1000;
+    border:none;
+    left: 0;
+
+    &.show {
+      top: 100% !important;
+    }
+  }
+
+  .dropdown-menu-lg {
+    width: 100%;
+  }
+
+
+}
+
+@keyframes DropDownSlide {
+  100% {
+    transform: translateY(0);
+  }
+  0% {
+    transform: translateY(10px);
+  }
+}

@@ -1,14 +1,18 @@
 import React from "react"
 import PropTypes from "prop-types"
 import { Navigate, Outlet } from "react-router-dom"
+import VerticalLayout from "../layouts/vertical/Index"
 
 const Authmiddleware = ({ component: Component, ...rest }) => {
   
-  return localStorage.getItem("authUser") ? <Outlet /> : <Navigate to="/login" />;
+  return localStorage.getItem("authUser") ? 
+  <VerticalLayout>
+    <Outlet />
+  </VerticalLayout>
+  
+  : <Navigate to="/login" />;
   
 }
-
-
 
   // Add your own authentication on the below line.
   // const isLoggedIn = AuthService.isLoggedIn()

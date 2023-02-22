@@ -31,9 +31,25 @@ import {
   saveToken,
 } from "../../redux/auth/login/actions";
 import LoadingSpinner from "../../components/Loading/LoadingSpinner";
+import { useNavigate } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 
 const Login = (props) => {
 
+
+  const navigate = useNavigate();
+  const location = useLocation();
+
+
+  useEffect(() => {
+    if(localStorage.getItem("authUser")) {
+      navigate('/dashboard')
+      }
+   
+  }, [])
+  
+
+ 
   document.title = "Login | Admin Ecommerce";
   
   console.log(localStorage.getItem("authUser"));
@@ -45,7 +61,7 @@ const Login = (props) => {
   const token = useSelector((state) => state.login.token);
 
   const loginAuth = async (email, password) => {
-    await fetch("http://127.0.0.1:8000/api/login", {
+    await fetch("http://192.168.1.4:8000/api/login", {
       method: "POST",
       body: JSON.stringify({
         email: email,
@@ -105,6 +121,8 @@ const Login = (props) => {
 
   return (
     <>
+
+    
       <div className="login mt-5 pt-5">
         <LoadingSpinner isLoading={isLoading} />
         <Container>
@@ -192,7 +210,7 @@ const Login = (props) => {
                   </Container>
 
                   <Row className="justify-content-center">
-                    <Link to="/" className="fs-4 text-muted text-center">
+                    <Link to="/" className="fs-6 text-muted text-center">
                       <i className="mdi mdi-lock me-1" />
                       Mot de passe oublié
                     </Link>

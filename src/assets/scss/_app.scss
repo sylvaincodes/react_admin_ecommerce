@@ -1,7 +1,15 @@
 @import "./custom/fonts/font";
 
 //Core files
-@import "./node_modules/bootstrap/scss/functions";
-@import "./node_modules/bootstrap/scss/variables";
 @import "variables";
-@import "./node_modules/bootstrap/scss/mixins.scss";
+
+
+//componenets
+@import "./custom/components/reboot";
+@import "./custom/components/dropdown";
+@import "./custom/components/badge";
+
+// Structure
+@import "./custom/structure/header";
+@import "./custom/structure/footer";
+@import "./custom/structure/sidebar";
