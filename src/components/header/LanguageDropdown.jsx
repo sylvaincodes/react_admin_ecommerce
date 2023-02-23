@@ -37,7 +37,7 @@ const LanguageDropdown = () => {
                 {
                   map(Object.keys(languages) ,key => (
 
-                    <DropdownItem className='d-flex align-items-center'  onClick={ () =>  changeLanguageAction(key)}>
+                    <DropdownItem key={key} className='d-flex align-items-center'  onClick={ () =>  changeLanguageAction(key)}>
                     <img 
                     src={get(languages, `${key}.flag`)} 
                     height={11}

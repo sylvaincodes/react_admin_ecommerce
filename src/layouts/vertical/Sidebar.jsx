@@ -1,54 +1,54 @@
-import React from "react";
+import React, { useState } from "react";
 import { Link } from "react-router-dom";
+import { SidebarData } from "../../data/sidebar";
 
-const Sidebar = () => {
+const Sidebar = (props) => {
+  const [subnav, setSubnav] = useState(false);
+  const showSubnav = () => setSubnav(!subnav);
+
+  const setActive = (key) => {
+    document.getElementById("li_"+key).classList.toggle('active');
+    document.getElementById("subnav_"+key).classList.toggle('active');
+  };
+
   return (
     <>
-      <div id="sidebar-menu">
-        <ul>
-          <li>
-            <Link href="#" className="d-flex gap-2 align-items-center active">
-              <i className="fa fa-shopping-bag"></i>
-              <span className="p-2">
-                Ecommerce
-              </span>
-              <i className="ms-auto fa fa-arrow-down"></i>
-            </Link>
+      <div id="sidebar-menu" className={ props.sidebar ? "show" : "hide" }>
+        <ul className="menu-list">
+          {SidebarData.map((item, key) => {
+            return (
+              <li className="menu-item" id={"li_"+key} key={key} onClick={ () => setActive(key) } >
+                <Link
+                  to={item.path}
+                  className="d-flex gap-2 align-items-center active"
+                >
+                  {item.icon}
+                  <span className="p-2">{item.title}</span>
+                  {item.iconOpened}
+                  {item.iconClosed}
+                </Link>
 
-            <ul>
-              <li>
-                <Link>Produits</Link>
+                <ul
+                  // className={
+                  //   subnav
+                  //     ? "sub-menu mm-collapse mm-show"
+                  //     : "sub-menu mm-collapse"
+                  // }
+                  id={"subnav_"+key}
+                  
+                >
+                  {
+                    item.subNav.map((subitem, index) => {
+                      return (
+                        <li key={index}>
+                          <Link to={subitem.path}>{subitem.title}</Link>
+                        </li>
+                      );
+                    })}
+                </ul>
               </li>
-              <li>
-                <Link>Commandes</Link>{" "}
-              </li>
-              <li>
-                <Link>Clients</Link>{" "}
-              </li>
-            </ul>
-          </li>
-
-          <li>
-            <Link href="#" className="d-flex gap-2 align-items-center">
-              <i className="fa fa-cog"></i>
-              <span className="p-2">
-                Paramètres
-              </span>
-              <i className="ms-auto fa fa-arrow-down"></i>
-            </Link>
-
-            <ul>
-              <li>
-                <Link>Api</Link>
-              </li>
-              <li>
-                <Link>langues</Link>{" "}
-              </li>
-              <li>
-                <Link>autres</Link>{" "}
-              </li>
-            </ul>
-          </li>
+            );
+          })}
         </ul>
       </div>
     </>

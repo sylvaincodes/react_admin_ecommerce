@@ -30,7 +30,7 @@ const Header = (props) => {
                 <img src={logoLightSvg} alt="logo-light" width={22} />
               </Link>
             </div>
-            <button className="btn btn-lg px-3">
+            <button className="btn btn-lg px-3"  onClick={props.showSidebar}>
               <i className="fa fa-bars"> </i>
             </button>
           </div>

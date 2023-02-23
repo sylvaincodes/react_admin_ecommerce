@@ -1,54 +1,83 @@
-#sidebar-menu{
-    position: fixed;
-    left: 0;
-    width: 250px;
-    background: $sidebar-dark-bg;
-    display: block;
-    padding-top: $header-height;
-    box-shadow: $box-shadow;
-    width: $sidebar-width;
+#sidebar-menu {
+  position: fixed;
+  left: 0;
+  width: 250px;
+  background: $sidebar-dark-bg;
+  display: block;
+  padding-top: $header-height;
+  box-shadow: $box-shadow;
+  width: $sidebar-width;
+  height: 100%;
 
-    ul{
-        padding-top: 20px;
+  &.show{
+    visibility: visible;
+    height: 100%;
+    transform: translateX(0);
+    transition: .5s ease-in;
+  }
 
-        li{
-            padding-inline-end: 10px;
-            padding-block: 10px;
-            a{
-                color: gray;
-                &.active{
-                    color: white;
-                }
-                i:last-child{
-                    font-size: 10px; 
-                }
-            }
+  &.hide{
+    visibility: hidden;
+    height: 0;
+    transform: translateX(-100%);
+    transition: .5s ease-in;
+  }
 
-            ul{
+  .menu-list{
 
-                display: none;
-                flex-direction: column;
-                gap: 20px;
+    padding-top: 20px;
 
-                a{
-                    &.active{
-                        color: white;
-                    }
-                    color: gray;
-                }
-            }
+  }
+  ul {
+    li {
+      padding-inline-end: 10px;
+      padding-block: 10px;
+      a {
+        color: gray;
 
-            &.active{
-                color: white;
-
-                ul{
-                    display: flex !important;
-                    flex-direction: column;
-                    gap: 20px;
-                }
-            }
+        i:last-child {
+          font-size: 10px;
         }
+      }
+
+      &.active {
+        a {
+          color: white;
+
+          i:last-child {
+            font-size: 10px;
+          }
+        }
+
+        .fa-arrow-up {
+          display: none;
+        }
+        .fa-arrow-down {
+          display: block;
+          font-size: 12px;
+        }
+        ul {
+          &.active {
+            display: flex !important;
+            flex-direction: column;
+            animation: DropTopSlide 0.2s ease-in;
+          }
+        }
+      }
+
+      &:not(.active) {
+        ul {
+          display: none;
+        }
+
+        .fa-arrow-up {
+          display: block;
+          font-size: 12px;
+        }
+        .fa-arrow-down {
+          display: none;
+        }
+      }
     }
-
+  }
 }
-
