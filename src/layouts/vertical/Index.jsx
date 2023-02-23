@@ -11,7 +11,7 @@ const Index = ({children}) => {
         <div id="layout-wrapper">
             <Header sidebar={sidebar} showSidebar={showSidebar}/>
             <Sidebar sidebar={sidebar} showSidebar={showSidebar}/>
-            {children}
+            <div className="main-content">{children}</div>
             <Footer/>
         </div>
     );

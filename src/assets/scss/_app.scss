@@ -3,13 +3,15 @@
 //Core files
 @import "variables";
 
-
 //componenets
 @import "./custom/components/reboot";
 @import "./custom/components/dropdown";
 @import "./custom/components/badge";
+@import "./custom/components/cards";
+@import "./custom/components/avatar";
 
 // Structure
 @import "./custom/structure/header";
 @import "./custom/structure/footer";
 @import "./custom/structure/sidebar";
+@import "./custom/structure/main";
