@@ -5,7 +5,7 @@ import * as FaIcons from "react-icons/fa";
 const Minicard = (props) => {
   return (
     <>
-        <Card className='bg-white'>
+        <Card className='bg-white mb-3'>
             <CardBody>
                 <div className='d-flex justify-content-between'>
                     <div className='d-grid'>

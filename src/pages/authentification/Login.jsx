@@ -77,8 +77,7 @@ const Login = (props) => {
         if (data.status == "200") {
 
           localStorage.setItem("token", data.token);
-          localStorage.setItem("authUser", JSON.stringify(data.user));
-          
+          localStorage.setItem("authUser", JSON.stringify(data.user));          
 
          } else {
           dispatch(loginError(data.message, props.history));
@@ -91,18 +90,6 @@ const Login = (props) => {
 
   const [auth, seAuths] = useState({});
 
-  //   useEffect(() => {
-  //     fetch('http://127.0.0.1:8000/api/users',{
-  //       headers:{
-  //         'Authorization': token
-  //       }
-  //     })
-  //        .then((response) => response.json())
-  //        .then((data) => {
-  //           console.log(data);
-  //           // seAuths(data);
-  //        });
-  //  }, []);
 
   const loginValidation = useFormik({
     initialValues: {
@@ -121,8 +108,6 @@ const Login = (props) => {
 
   return (
     <>
-
-    
       <div className="login mt-5 pt-5">
         <LoadingSpinner isLoading={isLoading} />
         <Container>

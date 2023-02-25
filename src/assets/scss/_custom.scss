@@ -88,3 +88,7 @@ a{
 .bg-first-color{
   background: $bg-first-color;
 }
+
+.modal{
+  z-index: 999999;
+}

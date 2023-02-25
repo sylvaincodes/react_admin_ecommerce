@@ -23,7 +23,7 @@ export const SidebarData = [
           title: "Commandes",
           path: "/ecommerce/commandes",
         },{
-          title: "Commandes",
+          title: "Clients",
           path: "/ecommerce/clients",
         }
       ],
@@ -47,6 +47,21 @@ export const SidebarData = [
         },{
           title: "Lettre de motivation",
           path: "/resumes/lettres",
+        }
+      ]
+    },
+    
+    {
+      title: "Utilisateurs",
+      path: "#",
+      icon: <i className="fa fa-user"></i>,
+      iconClosed: <RiIcons.RiArrowUpSFill className="ms-auto fa fa-arrow-up"  />,
+      iconOpened: <RiIcons.RiArrowDownSFill className="ms-auto fa fa-arrow-down"/>,
+   
+      subNav: [
+        {
+          title: "Comptes",
+          path: "/users/list",
         }
       ]
     }
