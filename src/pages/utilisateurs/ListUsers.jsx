@@ -19,13 +19,11 @@ import {
 } from "reactstrap";
 import * as Yup from "yup";
 import { useFormik } from "formik";
-
-import { Name, Email, Tags, Projects, Img } from "./ListUsersCol";
-
-//Import Breadcrumb
+import { Name, Email } from "./ListUsersCol";
 import Breadcrumbs from "../../components/breadcrumbs/Breadcrumb";
 import DeleteModal from "../../components/modals/DeleteModal";
-
+import { API_URL } from "../../data";
+import { token } from "../../data";
 import {
   getUsers as onGetUsers,
   addNewUser as onAddNewUser,
@@ -47,14 +45,15 @@ import { useSelector, useDispatch } from "react-redux";
 import LoadingSpinner from "../../components/Loading/LoadingSpinner";
 
 const ListUsers = (props) => {
+
   //meta title
   document.title = "Liste des utilisateurs | Admin ";
 
+  const [isloading, setIsloading] = useState(false)
   const dispatch = useDispatch();
   const [user, setUser] = useState();
   const error = useSelector((state) => state.users.error);
 
-  const token = localStorage.getItem("token");
 
   //validation
   const validation = useFormik({
@@ -87,7 +86,7 @@ const ListUsers = (props) => {
         dispatch(onUpdateUser(updateUser));
         validation.resetForm();
         setIsEdit(false);
-        setLoading(true);
+        setIsloading(true);
         editUserApi(
           updateUser.username,
           updateUser.password,
@@ -103,7 +102,7 @@ const ListUsers = (props) => {
           email: values["email"],
         };
         // save new user
-        setLoading(true);
+        setIsloading(true);
         dispatch(onAddNewUser(newUser));
         addUserApi(
           newUser.username,
@@ -123,7 +122,7 @@ const ListUsers = (props) => {
     password_confirmation,
     email
   ) => {
-    await fetch("http://192.168.1.4:8000/api/users", {
+    await fetch(API_URL+"/users", {
       method: "POST",
       headers: {
         Authorization: "Bearer " + token,
@@ -138,7 +137,7 @@ const ListUsers = (props) => {
     })
       .then((response) => response.json())
       .then((data) => {
-        setLoading(false);
+        setIsloading(false);
         if (data.status == "201") {
           console.log(data);
           dispatch(addUserSuccess(data.user));
@@ -148,20 +147,20 @@ const ListUsers = (props) => {
         }
       })
       .catch((e) => {
-        setLoading(true);
+        setIsloading(true);
         console.log(e);
       });
   };
 
   const deleteUserApi = async (user) => {
-    await fetch("http://192.168.1.4:8000/api/users/" + user.id, {
+    await fetch(API_URL+"/users/" + user.id, {
       method: "DELETE",
       headers: {
         Authorization: "Bearer " + token,
       },
     }).then((response) => {
       const data = response.json();
-      setLoading(false);
+      setIsloading(false);
       dispatch(deleteUserSuccess(user));
       dispatch(deleteUserFail({ message: data.message }));
     });
@@ -173,7 +172,7 @@ const ListUsers = (props) => {
     password_confirmation,
     email
   ) => {
-    await fetch("http://192.168.1.4:8000/api/users/" + user.id, {
+    await fetch(API_URL+"/users/" + user.id, {
       method: "PUT",
       headers: {
         Authorization: "Bearer " + token,
@@ -188,7 +187,7 @@ const ListUsers = (props) => {
     })
       .then((response) => response.json())
       .then((data) => {
-        setLoading(false);
+        setIsloading(false);
         if (data.status == "200") {
           dispatch(updateUserSuccess(data.user));
           dispatch(updateUserFail({ message: data.message }));
@@ -197,7 +196,7 @@ const ListUsers = (props) => {
         }
       })
       .catch((e) => {
-        setLoading(true);
+        setIsloading(true);
         console.log(e);
       });
   };
@@ -205,16 +204,16 @@ const ListUsers = (props) => {
   const [userList, setUserList] = useState([]);
   const [modal, setModal] = useState(false);
   const [isEdit, setIsEdit] = useState(false);
-  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    fetch("http://192.168.1.4:8000/api/users", {
+    fetch(API_URL+"/users", {
       headers: {
         Authorization: "Bearer " + token,
       },
     })
       .then((response) => response.json())
       .then((data) => {
+
         setUserList(data);
         dispatch(getUsersSuccess(data));
       });
@@ -399,7 +398,7 @@ const ListUsers = (props) => {
     dispatch(onDeleteUser(user));
     onPaginationPageChange(1);
     setDeleteModal(false);
-    setLoading(true);
+    setIsloading(true);
     deleteUserApi(user);
   };
 
@@ -413,7 +412,7 @@ const ListUsers = (props) => {
 
   return (
     <React.Fragment>
-      <LoadingSpinner isLoading={loading} />
+      <LoadingSpinner isloading={isloading} />
       <DeleteModal
         show={deleteModal}
         onDeleteClick={handleDeleteUser}

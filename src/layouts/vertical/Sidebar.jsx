@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
-import { SidebarData } from "../../data/sidebar";
+import { SidebarData } from "../../data/index";
 
 const Sidebar = (props) => {
   const [subnav, setSubnav] = useState(false);

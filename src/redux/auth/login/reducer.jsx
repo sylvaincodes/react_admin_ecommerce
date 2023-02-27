@@ -1,46 +1,50 @@
 import {
-  LOGIN_USER,
+  LOGIN_REQUEST,
   LOGIN_SUCCESS,
-  LOGOUT_USER,
-  LOGOUT_SUCCESS,
-  API_ERROR,
-  API_TOKEN
+  LOGIN_FAILURE,
+  LOGOUT_REQUEST,
 } from "./actionTypes";
 
-const initialState = {
-  token: "",
-  error: "",
-  loading: false,
-};
+
+let userData = JSON.parse(localStorage.getItem('user'));
+const initialState = userData
+  ? {
+      loggedIn: true,
+      user : userData,
+    }
+  : {
+    loggedIn: false,
+    user : userData
+    };
 
 const login = (state = initialState, action) => {
   switch (action.type) {
-    case LOGIN_USER:
+    case LOGIN_REQUEST:
       state = {
         ...state,
-        loading: true,
+        loggedIn: false,
       };
       break;
 
     case LOGIN_SUCCESS:
       state = {
         ...state,
-        loading: false,
-        error:""
+        user : action.payload.user,
+        loggedIn: true
       };
       break;
-      
-    case API_ERROR:
+
+    case LOGIN_FAILURE:
       state = {
         ...state,
-        error: action.payload.error,
+        loggedIn: false
       };
       break;
-      
-      case API_TOKEN:
+
+    case LOGOUT_REQUEST:
       state = {
         ...state,
-        token: action.payload.token,
+        loggedIn: false 
       };
       break;
 

@@ -16,52 +16,46 @@ import {
   Alert,
 } from "reactstrap";
 
+import {  history } from '../../helpers/history'; 
+
 import login_header from "../../assets/images/profile-img.png";
 import logo from "../../assets/images/logo.svg";
 import { Link } from "react-router-dom";
 import { useFormik } from "formik";
 import * as Yup from "yup";
-
-import accessToken from "../../helpers/jwt/token";
 import { useSelector, useDispatch } from "react-redux";
 import {
-  loginError,
+  loginFailure,
   loginSuccess,
-  loginUser,
-  saveToken,
+  loginRequest,
 } from "../../redux/auth/login/actions";
 import LoadingSpinner from "../../components/Loading/LoadingSpinner";
 import { useNavigate } from "react-router-dom";
-import { useLocation } from "react-router-dom";
+import { API_URL } from "../../data";
 
 const Login = (props) => {
 
-
-  const navigate = useNavigate();
-  const location = useLocation();
+const navigate = useNavigate();
 
 
-  useEffect(() => {
-    if(localStorage.getItem("authUser")) {
-      navigate('/dashboard')
-      }
-   
-  }, [])
-  
+useEffect(() => {
+  if(localStorage.getItem("user")) {
+    navigate('/dashboard');
+    }
+}, [])
 
- 
+
   document.title = "Login | Admin Ecommerce";
   
-  console.log(localStorage.getItem("authUser"));
-
   const dispatch = useDispatch();
 
-  const isLoading = useSelector((state) => state.login.loading);
+  const [isloading, setIsloading] = useState(false)
   const error = useSelector((state) => state.login.error);
   const token = useSelector((state) => state.login.token);
 
-  const loginAuth = async (email, password) => {
-    await fetch("http://192.168.1.4:8000/api/login", {
+  const loginAuth = async (email, password) => 
+  {
+    await fetch(API_URL+"/login", {
       method: "POST",
       body: JSON.stringify({
         email: email,
@@ -73,23 +67,19 @@ const Login = (props) => {
     })
       .then((response) => response.json())
       .then((data) => {
-        dispatch(loginSuccess({ email, password }, props.history));
-        if (data.status == "200") {
-
-          localStorage.setItem("token", data.token);
-          localStorage.setItem("authUser", JSON.stringify(data.user));          
-
+        if (data.status == "200") {    
+          localStorage.setItem("user", JSON.stringify(data));          
+          dispatch(loginSuccess(data.user));
+          navigate("/dashboard");
          } else {
-          dispatch(loginError(data.message, props.history));
+          dispatch(loginFailure(data.message));
         }
+        setIsloading(false);
       })
       .catch(() => {
-        dispatch(loginError("Serveur indisponible", props.history));
+        dispatch(loginFailure("Serveur indisponible"));
       });
   };
-
-  const [auth, seAuths] = useState({});
-
 
   const loginValidation = useFormik({
     initialValues: {
@@ -102,17 +92,18 @@ const Login = (props) => {
     }),
     onSubmit: (values) => {
       loginAuth(values.email, values.password);
-      dispatch(loginUser(values, props.history));
+      dispatch(loginRequest(values));
+      setIsloading(true);
     },
   });
 
   return (
     <>
       <div className="login mt-5 pt-5">
-        <LoadingSpinner isLoading={isLoading} />
+        <LoadingSpinner isloading={isloading} />
         <Container>
           <Row className="justify-content-center">
-            <Col lg={4} md={8} sm={10} xs={10}>
+            <Col lg={5} md={8} sm={10} xs={10}>
               <Card className="overflow-hidden">
                 <CardHeader className="bg-primary">
                   <Row className="py-3 align-items-center">

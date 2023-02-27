@@ -1,38 +1,36 @@
 import {
-    LOGIN_USER,
+    LOGIN_REQUEST,
     LOGIN_SUCCESS,
-    LOGOUT_USER,
-    LOGOUT_SUCCESS,
-    API_ERROR,
-    API_TOKEN
+    LOGIN_FAILURE,
+    LOGOUT_REQUEST,
 }
 
 from './actionTypes';
 
-export const loginUser = (user , history) => {
+export const loginRequest = (user ) => {
     return{
-        type: LOGIN_USER,
-        payload:{ user, history }
+        type: LOGIN_REQUEST,
+        payload:{ user }
     }
 }
 
-export const loginSuccess = (user , history) => {
+export const loginSuccess = (user ) => {
     return{
         type: LOGIN_SUCCESS,
-        payload:{ user, history }
+        payload:{ user }
     }
 }
 
-export const loginError = (error , history) => {
+export const loginFailure = (error ) => {
     return{
-        type: API_ERROR,
-        payload:{ error, history }
+        type: LOGIN_FAILURE,
+        payload:{ error }
     }
 }
 
-export const saveToken = (token , history) => {
+export const logoutRequest = (token , history) => {
     return{
-        type: API_TOKEN,
-        payload:{ token, history }
+        type: LOGOUT_REQUEST,
+        payload:{ }
     }
 }

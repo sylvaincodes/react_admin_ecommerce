@@ -16,10 +16,17 @@ import {
     users: [],
     userProfile: {},
     error: {},
+    loading :false
   }
   
   const users = (state = INIT_STATE, action) => {
     switch (action.type) {
+        
+    case GET_USERS:
+        return {
+          ...state,
+          loading:true,
+        }
         
     case GET_USERS_SUCCESS:
         return {

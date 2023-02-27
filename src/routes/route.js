@@ -5,7 +5,7 @@ import VerticalLayout from "../layouts/vertical/Index"
 
 const Authmiddleware = ({ component: Component, ...rest }) => {
   
-  return localStorage.getItem("authUser") ? 
+  return localStorage.getItem("user") ? 
   <VerticalLayout>
     <Outlet />
   </VerticalLayout>
