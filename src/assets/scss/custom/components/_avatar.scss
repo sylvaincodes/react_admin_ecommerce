@@ -35,13 +35,13 @@
   
   .avatar-title {
     align-items: center;
-    background-color: $primary;
+    background-color: $cyan !important;
     color: $white;
     display: flex;
     font-weight: $fw-medium;
     justify-content: center;
-    // height: 100%;
-    // width: 100%;
+    padding-block: 7px;
+    font-size: 14px;
   }
   
   // avatar group

@@ -40,16 +40,17 @@ import french from "../assets/images/flags/french.jpg";
 import * as RiIcons from "react-icons/ri";
 
 export const API_URL = "http://192.168.1.4:8000/api";
-export const token = JSON.parse(localStorage.getItem("user")).token;
+export const BASE_URL = "http://192.168.1.4:3000/";
+export const token = JSON.parse(localStorage.getItem("user")) ?  JSON.parse(localStorage.getItem("user")).token : "";
 
 
 export const discountData = [
-  { label: "Less than 10%", value: 0 },
-  { label: "10% or more", value: 10 },
-  { label: "20% or more", value: 20 },
-  { label: "30% or more", value: 30 },
-  { label: "40% or more", value: 40 },
-  { label: "50% or more", value: 50 },
+  { label: "Moins de 0%", value: 0 },
+  { label: "10% ou plus", value: 10 },
+  { label: "20% ou plus", value: 20 },
+  { label: "30% ou plus", value: 30 },
+  { label: "40% ou plus", value: 40 },
+  { label: "50% ou plus", value: 50 },
 ];
 
 export const productsData = [
@@ -327,6 +328,10 @@ export const SidebarData = [
       {
         title: "Produits",
         path: "/ecommerce/produits",
+      },
+      {
+        title: "Categories Produits",
+        path: "/ecommerce/categories",
       },
       {
         title: "Commandes",

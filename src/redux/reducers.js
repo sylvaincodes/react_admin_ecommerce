@@ -5,12 +5,14 @@ import { combineReducers } from "redux";
 import login from "./auth/login/reducer";
 import users from "./users/reducer";
 import products from "./products/reducer";
+import categories from "./categories/reducer"
 
 const rootReducer = combineReducers(
   {
     login,
     users,
     products,
+    categories
   },
 
 );

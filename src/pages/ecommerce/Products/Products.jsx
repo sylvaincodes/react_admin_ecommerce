@@ -26,44 +26,44 @@ import StarRatings from "react-star-ratings";
 
 //RangeSlider
 import Nouislider from "nouislider-react";
-// import "nouislider/distribute/nouislider.css";
-
-//Import Product Images
-import { productImages } from "../../assets/images/product";
+import "nouislider/dist/nouislider.css";
 
 //Import Breadcrumb
-import Breadcrumbs from "../../components/breadcrumbs/Breadcrumb";
+import Breadcrumbs from "../../../components/breadcrumbs/Breadcrumb";
 
 //Import data
-import { API_URL,token, discountData, productsData } from "../../data/index";
+import { API_URL, token, discountData, productsData } from "../../../data/index";
 
 //Import actions
-import { getProducts as onGetProducts, getProductsSuccess } from "../../redux/products/actions";
+import {
+  getProducts as onGetProducts,
+  getProductsSuccess,
+} from "../../../redux/products/actions";
 
 //redux
 import { useSelector, useDispatch } from "react-redux";
+import { getProductOffer } from "../../../helpers/functions";
 
 const Products = props => {
 
+  
   //meta title
-  document.title="Products | Ecommerce ";
+  document.title="Products | Ecommerce";
+
   const dispatch = useDispatch()
 
-  const  products  = useSelector(state => ({
-    products: state.products.products
+  const { products,categories } = useSelector(state => ({
+    products: state.products,
+    categories: state.categories,
   }))
+  // eslint-disable-next-line no-unused-vars
+  // eslint-disable-next-line no-unused-vars
+  
 
   const { history } = props
-  // eslint-disable-next-line no-unused-vars
-  const [FilterClothes, setFilterClothes] = useState([
-    { id: 1, name: "T-shirts", link: "#" },
-    { id: 2, name: "Shirts", link: "#" },
-    { id: 3, name: "Jeans", link: "#" },
-    { id: 4, name: "Jackets", link: "#" },
-  ])
+  const [FilterClothes, setFilterClothes] = useState(categories['categories'])
   const [productList, setProductList] = useState([])
   const [activeTab, setActiveTab] = useState("1")
-  // eslint-disable-next-line no-unused-vars
   const [discountDataList, setDiscountDataList] = useState([])
   const [filters, setFilters] = useState({
     discount: [],
@@ -71,40 +71,47 @@ const Products = props => {
   })
   const [page, setPage] = useState(1)
   // eslint-disable-next-line no-unused-vars
-  const [totalPage, setTotalPage] = useState(5)
+  const [totalPage, setTotalPage] = useState()
 
   useEffect(() => {
-    setProductList(products)
+    setProductList(products.products);
+    setTotalPage(products['total_page']);
     setDiscountDataList(discountData)
   }, [products, discountData])
 
-  useEffect(() => {
-    dispatch(onGetProducts())
-  }, [dispatch])
+  // useEffect(() => {
+  //   dispatch(onGetProducts())
+  // }, [dispatch])
 
   useEffect(() => {
-    if (!isEmpty(products)) setProductList(products)
+    return (products) => {
+      if (!isEmpty(products)) {
+        setProductList(products.products);
+        setTotalPage(products['total_page']);
+      }
+    }
   }, [products])
-
-  // Api get products 
-  useEffect(() => {
-    fetch(API_URL+"/products", {
-      headers: {
-        Authorization: "Bearer " + token,
-      },
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        setProductList(data);
-        dispatch(getProductsSuccess(data));
-      });
-  }, []);
+  
 
   const toggleTab = tab => {
     if (activeTab !== tab) {
       setActiveTab(tab)
     }
   }
+
+  const onHandleInputSearch = e => {
+    const  { value } = e.target
+    fetch(API_URL + "/search/products?search=" + value, {
+      headers: {
+        Authorization: "Bearer " + token,
+      },
+    })
+      .then((response) => response.json())
+      .then((array) => {
+        dispatch(getProductsSuccess(array));
+        console.log(array);
+      });
+  };  
 
   const onSelectDiscount = e => {
     const { value, checked } = e.target
@@ -128,20 +135,30 @@ const Products = props => {
     })
     // onFilterProducts(value, checked)
 
-    let filteredProducts = productsData
+    let filteredProducts = products['products']
     if (checked && parseInt(value) === 0) {
-      filteredProducts = productsData.filter(product => product.offer < 10)
+      filteredProducts = products['products'].filter(product => getProductOffer(product.price , product.sale_price) < 10)
     } else if (checked && existing.length > 0) {
-      filteredProducts = productsData.filter(
-        product => product.offer >= Math.min(...existing)
+      filteredProducts = products['products'].filter(
+        product => getProductOffer(product.price , product.sale_price) >= Math.min(...existing)
       )
     }
     setProductList(filteredProducts)
   }
+
   const onUpdate = (render, handle, value) => {
     setProductList(
-      productsData.filter(
-        product => product.newPrice >= value[0] && product.newPrice <= value[1]
+      products['products'].filter(
+        product => product.price >= value[0] && product.price <= value[1]
+      )
+    )
+  }
+  
+  
+  const onUpdateCategory= (category_id) => {
+    setProductList(
+      products['products'].filter(
+        product => product.category_id === category_id
       )
     )
   }
@@ -151,7 +168,7 @@ const Products = props => {
   on change rating checkbox method
   */
   const onChangeRating = value => {
-    setProductList(productsData.filter(product => product.rating >= value))
+    setProductList(products['products'].filter(product => product.rating >= value))
 
     var modifiedRating = [...ratingvalues]
     modifiedRating.push(value)
@@ -159,7 +176,7 @@ const Products = props => {
   }
 
   const onSelectRating = value => {
-    setProductList(productsData.filter(product => product.rating === value))
+    setProductList(products['products'].filter(product => product.rating === value))
   }
 
   const onUncheckMark = (value) => {
@@ -168,24 +185,33 @@ const Products = props => {
     /*
     find min values
     */
-    var filteredProducts = productsData
+    var filteredProducts = products['products']
     if (modifiedData && modifiedData.length && value !== 1) {
       var minValue = Math.min(...modifiedData)
       if (minValue && minValue !== Infinity) {
-        filteredProducts = productsData.filter(
+        filteredProducts = products['products'].filter(
           product => product.rating >= minValue
         )
         setRatingvalues(modifiedData)
       }
     } else {
-      filteredProducts = productsData
+      filteredProducts = products['products']
     }
     setProductList(filteredProducts)
   }
 
-  const handlePageClick = page => {
-    setPage(page)
-  }
+  const handlePageClick = (page) => {
+    setPage(page);
+    fetch(API_URL + "/products?page=" + page, {
+      headers: {
+        Authorization: "Bearer " + token,
+      },
+    })
+      .then((response) => response.json())
+      .then((array) => {
+        dispatch(getProductsSuccess(array));
+      });
+  };
 
   return (
     <React.Fragment>
@@ -196,14 +222,14 @@ const Products = props => {
             <Col lg="3">
               <Card>
                 <CardBody>
-                  <CardTitle className="mb-4">Filter</CardTitle>
+                  <CardTitle className="mb-4">Filtres</CardTitle>
                   <div>
-                    <h5 className="font-size-14 mb-3">Clothes</h5>
+                    <h5 className="font-size-14 mb-3">Catégories</h5>
                     {/* Render Cloth Categories */}
                     <ul className="list-unstyled product-list">
                       {FilterClothes.map((cloth, key) => (
                         <li key={"_li_" + key}>
-                          <Link to={cloth.link}>
+                          <Link onClick={ () => onUpdateCategory(cloth.id) }>
                             <i className="mdi mdi-chevron-right me-1" />
                             {cloth.name}
                           </Link>
@@ -212,22 +238,22 @@ const Products = props => {
                     </ul>
                   </div>
                   <div className="mt-4 pt-3">
-                    <h5 className="font-size-14 mb-4">Price</h5>
+                    <h5 className="font-size-14 mb-4">Prix</h5>
                     <br />
 
                     <Nouislider
-                      range={{ min: 0, max: 600 }}
+                      range={{ min: 0, max: 800}}
                       tooltips={true}
-                      start={[100, 500]}
+                      start={[100, 800]}
                       connect
                       tooltipVisible
-                      step={10}
+                      step={5}
                       onSlide={onUpdate}
                     />
                   </div>
 
                   <div className="mt-4 pt-3">
-                    <h5 className="font-size-14 mb-3">Discount</h5>
+                    <h5 className="font-size-14 mb-3">Réductions</h5>
                     {discountData.map((discount, i) => (
                       <div className="form-check mt-2" key={i}>
                         <Input
@@ -245,7 +271,7 @@ const Products = props => {
                   </div>
 
                   <div className="mt-4 pt-3">
-                    <h5 className="font-size-14 mb-3">Customer Rating</h5>
+                    <h5 className="font-size-14 mb-3">Avis des clients</h5>
                     <div>
                       <div className="form-check mt-2">
                         <Input
@@ -264,7 +290,7 @@ const Products = props => {
                           className="form-check-label"
                           htmlFor="productratingCheck1"
                         >
-                          4 <i className="bx bx-star text-warning" /> & Above
+                          4 <i className="fa fa-star text-warning" /> et Plus
                         </Label>
                       </div>
                       <div className="form-check mt-2">
@@ -284,7 +310,7 @@ const Products = props => {
                           className="form-check-label"
                           htmlFor="productratingCheck2"
                         >
-                          3 <i className="bx bx-star text-warning" /> & Above
+                          3 <i className="fa fa-star text-warning" /> et Plus
                         </Label>
                       </div>
                       <div className="form-check mt-2">
@@ -304,7 +330,7 @@ const Products = props => {
                           className="form-check-label"
                           htmlFor="productratingCheck3"
                         >
-                          2 <i className="bx bx-star text-warning" /> & Above
+                          2 <i className="fa fa-star text-warning" /> et Plus
                         </Label>
                       </div>
                       <div className="form-check mt-2">
@@ -324,7 +350,7 @@ const Products = props => {
                           className="form-check-label"
                           htmlFor="productratingCheck4"
                         >
-                          1 <i className="bx bx-star text-warning" />
+                          1 <i className="fa fa-star text-warning" />
                         </Label>
                       </div>
                     </div>
@@ -337,7 +363,7 @@ const Products = props => {
               <Row className="mb-3">
                 <Col xl="4" sm="6">
                   <div className="mt-2">
-                    <h5>Clothes</h5>
+                    <h5>Produits</h5>
                   </div>
                 </Col>
                 <Col lg="8" sm="6">
@@ -347,9 +373,10 @@ const Products = props => {
                         <Input
                           type="text"
                           className="form-control border-0"
-                          placeholder="Search..."
+                          placeholder="Rechercher..."
+                          onChange={onHandleInputSearch}
                         />
-                        <i className="bx bx-search-alt search-icon" />
+                         <i className="fa fa-search search-icon" />
                       </div>
                     </div>
                     <Nav className="product-view-nav" pills>
@@ -359,10 +386,10 @@ const Products = props => {
                             active: activeTab === "1",
                           })}
                           onClick={() => {
-                            toggleTab("1")
+                            toggleTab("1");
                           }}
                         >
-                          <i className="bx bx-grid-alt" />
+                          <i className="fa fa-bars"></i>
                         </NavLink>
                       </NavItem>
                       <NavItem>
@@ -371,10 +398,10 @@ const Products = props => {
                             active: activeTab === "2",
                           })}
                           onClick={() => {
-                            toggleTab("2")
+                            toggleTab("2");
                           }}
                         >
-                          <i className="bx bx-list-ul" />
+                          <i className="fa fa-list" />
                         </NavLink>
                       </NavItem>
                     </Nav>
@@ -394,16 +421,22 @@ const Products = props => {
                       >
                         <CardBody>
                           <div className="product-img position-relative">
-                            {product.isOffer ? (
+                          {product.sale_price ? (
                               <div className="avatar-sm product-ribbon">
                                 <span className="avatar-title rounded-circle bg-primary">
-                                  {`-${product.offer}%`}
+                                  {/* {`-${product.price - product.sale_price}%`} */}
+                                  -{" "}
+                                  {getProductOffer(
+                                    product.price,
+                                    product.sale_price
+                                  )}{" "}
+                                  %
                                 </span>
                               </div>
                             ) : null}
 
                             <img
-                              src={productImages[product.image]}
+                              src={`http://localhost:3000/media/products/${product.images}`}
                               alt=""
                               className="img-fluid mx-auto d-block"
                             />
@@ -419,7 +452,7 @@ const Products = props => {
                             </h5>
                             <div className="text-muted mb-3">
                               <StarRatings
-                                rating={product.rating}
+                                rating={product.rating ? product.rating : 0}
                                 starRatedColor="#F1B44C"
                                 starEmptyColor="#2D363F"
                                 numberOfStars={5}
@@ -429,10 +462,24 @@ const Products = props => {
                               />
                             </div>
                             <h5 className="my-0">
-                              <span className="text-muted me-2">
-                                <del>${product.oldPrice}</del>
-                              </span>
-                              <b>${product.newPrice}</b>
+                              {product.price ? (
+                                <span>
+                                  {product.sale_price ? (
+                                    <span className="text-muted me-2">
+                                      <del>${product.price}</del>
+                                    </span>
+                                  ) : (
+                                    <b>${product.price}</b>
+                                  )}
+                                </span>
+                              ) : (
+                                ""
+                              )}
+                              {product.sale_price ? (
+                                <b>${product.sale_price}</b>
+                              ) : (
+                                ""
+                              )}
                             </h5>
                           </div>
                         </CardBody>
@@ -440,7 +487,6 @@ const Products = props => {
                     </Col>
                   ))}
               </Row>
-
               <Row>
                 <Col lg="12">
                   <Pagination className="pagination pagination-rounded justify-content-end mb-2">

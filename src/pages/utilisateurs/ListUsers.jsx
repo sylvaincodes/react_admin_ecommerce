@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef, useMemo } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import TableContainer from "../../components/tables/TableContainer";
 import {
   Card,
@@ -54,7 +54,7 @@ const ListUsers = (props) => {
   const [user, setUser] = useState();
   const error = useSelector((state) => state.users.error);
 
-
+  const navigate = useNavigate();
   //validation
   const validation = useFormik({
     //enableReinitialize : use this flag when initial values needs to be changed
@@ -139,16 +139,13 @@ const ListUsers = (props) => {
       .then((data) => {
         setIsloading(false);
         if (data.status == "201") {
-          console.log(data);
           dispatch(addUserSuccess(data.user));
-          dispatch(addUserFail({ message: data.message }));
         } else {
           dispatch(addUserFail({ message: data.message }));
         }
       })
       .catch((e) => {
         setIsloading(true);
-        console.log(e);
       });
   };
 
@@ -213,7 +210,9 @@ const ListUsers = (props) => {
     })
       .then((response) => response.json())
       .then((data) => {
-
+        if(data.status==401){
+          navigate('')
+        }
         setUserList(data);
         dispatch(getUsersSuccess(data));
       });
@@ -274,20 +273,20 @@ const ListUsers = (props) => {
       },
       {
         Header: "Type d'utilisateur",
-        accessor: "tags",
+        accessor: "type",
         filterable: true,
         accessor: (cellProps) => (
           <>
-            {cellProps.manage_supers == 1 ? (
-              <span>SUPER ADMIN</span>
-            ) : cellProps.super_user == 1 ? (
+            {cellProps.type >= 1 ? (
+              <span className="badge badge-soft-primary font-size-11 m-1 ">Admin</span>
+            ) : cellProps.super_user >= 2 ? (
               <div>
-                <span>ADMIN</span>
+                <span className="badge badge-soft-primary font-size-11 m-1 ">Super Admin</span>
               </div>
             ) : (
               <div>
                 <span className="badge badge-soft-primary font-size-11 m-1 ">
-                  USER
+                  Client
                 </span>
               </div>
             )}
@@ -403,7 +402,7 @@ const ListUsers = (props) => {
   };
 
   const handleUserClicks = () => {
-    setUserList("");
+    setUser("");
     setIsEdit(false);
     toggle();
   };
@@ -437,8 +436,8 @@ const ListUsers = (props) => {
                     columns={columns}
                     data={users}
                     isGlobalFilter={true}
-                    isAddUserList={true}
-                    handleUserClick={handleUserClicks}
+                    isAddList={true}
+                    handleAddNewClick={handleUserClicks}
                     customPageSize={10}
                     className="custom-header-css"
                   />

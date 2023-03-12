@@ -14,7 +14,19 @@ html {
   
   a {
     text-decoration: none !important;
+    color:$primary;
   }
+
+  .nav-item{
+    .nav-link{
+      color:$primary !important;
+      &.active{
+        background-color:$primary !important;
+        color:$white !important ;
+      }
+    }
+  }
+
 
   li{
     list-style: none;

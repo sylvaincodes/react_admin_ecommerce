@@ -6,6 +6,11 @@ body[data-sidebar="dark"] {
   .logo-light {
     display: block;
   }
+
+  .logo-lg {
+    display: none ;
+  } 
+
 }
 
 #page-topbar {
@@ -25,13 +30,15 @@ body[data-sidebar="dark"] {
     margin: 0 auto;
     gap: 10px;
 
+    // @media
     .navbar-brand-box {
       background: $sidebar-dark-bg;
       padding: 0 1.5rem;
-
+      width: 75px;
       .logo {
         line-height: 70px;
       }
+
     }
 
     .header-item {

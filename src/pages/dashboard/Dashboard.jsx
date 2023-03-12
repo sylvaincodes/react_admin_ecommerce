@@ -8,7 +8,7 @@ const Dashboard = () => {
   document.title = "Dashboard | Admin Ecommerce";
 
   return (
-    <div className="page-content bg-image-full">
+    <div className="page-content">
           <Container fluid>
 
             <Row>

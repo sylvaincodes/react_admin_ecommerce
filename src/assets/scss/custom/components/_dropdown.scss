@@ -18,7 +18,7 @@
     position: absolute;
     z-index: 1000;
     border:none;
-    left: 0;
+    right: 0;
 
     &.show {
       top: 100% !important;
@@ -28,6 +28,17 @@
   .dropdown-menu-lg {
     width: 100%;
   }
+
+  @media (min-width: 575px) {
+    .dropdown-menu-lg {
+      width: 320px;
+    }
+  
+    .dropdown-menu-md {
+      width: 240px;
+    }
+  }
+  
 
 
 }

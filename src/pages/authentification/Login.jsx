@@ -70,7 +70,7 @@ useEffect(() => {
         if (data.status == "200") {    
           localStorage.setItem("user", JSON.stringify(data));          
           dispatch(loginSuccess(data.user));
-          navigate("/dashboard");
+          navigate("/");
          } else {
           dispatch(loginFailure(data.message));
         }

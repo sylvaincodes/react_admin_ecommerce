@@ -10,9 +10,15 @@
 @import "./custom/components/cards";
 @import "./custom/components/avatar";
 @import "./custom/components/breadcrumbs";
+@import "./custom/components/paginations";
+
 
 // Structure
+@import "./custom/structure/responsive";
 @import "./custom/structure/header";
 @import "./custom/structure/footer";
 @import "./custom/structure/sidebar";
 @import "./custom/structure/main";
+
+//pages
+@import "./custom/pages/ecommerce";

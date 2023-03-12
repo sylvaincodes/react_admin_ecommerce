@@ -1,0 +1,51 @@
+//min width ( sm=575, md=768,lg=992 , xl=1200 )
+@include media-breakpoint-up(sm) { 
+    .logo-lg {
+        display: none;
+    }    
+}
+
+@include media-breakpoint-up(md) {
+   
+}
+
+@include media-breakpoint-up(lg) {
+    
+
+    .navbar-brand-box{    
+        width: 250px !important;    
+        .logo-sm {
+            display: none !important;
+          }   
+          .logo-lg {
+            display: block !important;
+                text-align: center;
+        }  
+    }
+    .page-topbar{
+        .navbar-header{
+            button{
+
+                &.btn{
+                    display: none !important;
+                }
+            }
+        }
+    }
+
+    .main-content{
+        margin-left: 250px;
+    }
+
+    #sidebar-menu{
+        &.hide{
+            visibility: visible !important;
+            height: 100% !important;
+            transform: translateX(0) !important;
+        }
+    }
+}
+
+@include media-breakpoint-up(xl) {
+    
+}

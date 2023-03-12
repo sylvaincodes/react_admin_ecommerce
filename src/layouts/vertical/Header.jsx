@@ -1,22 +1,18 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
-import logo from "../../assets/images/logo.svg";
-import logoLightSvg from "../../assets/images/logo-sm-light.png";
-import {
-  Button,
-  Container,
-  Form,
-  Input,
-  InputGroup,
-} from "reactstrap";
+
+
+import logo from "../../assets/images/logo-sm-light.png";
+import logoLightSvg from "../../assets/images/logo-light.png";
+
+import { Button, Container, Form, Input, InputGroup } from "reactstrap";
 import LanguageDropdown from "../../components/header/LanguageDropdown";
 import NotificationDropdown from "../../components/header/NotificationDropdown";
 import ProfilMenu from "../../components/header/ProfilMenu";
 
-
 const Header = (props) => {
   const [search, setSearch] = useState(false);
-    
+
   return (
     <>
       <header id="page-topbar">
@@ -27,10 +23,15 @@ const Header = (props) => {
                 <img src={logo} alt="logo" height={22} />
               </Link>
               <Link to="/dashboard" className="logo logo-light">
-                <img src={logoLightSvg} alt="logo-light" width={22} />
+                <span className="logo-sm">
+                  <img src={logo} alt="logo-light" width={22} />
+                </span>
+                <span className="logo-lg">
+                  <img src={logoLightSvg} alt="logo-light" height={22} />
+                </span>
               </Link>
             </div>
-            <button className="btn btn-lg px-3"  onClick={props.showSidebar}>
+            <button className="btn btn-lg px-3" onClick={props.showSidebar}>
               <i className="fa fa-bars"> </i>
             </button>
           </div>
@@ -72,10 +73,9 @@ const Header = (props) => {
 
             <LanguageDropdown />
 
-            <NotificationDropdown/>
+            <NotificationDropdown />
 
-            <ProfilMenu/>
-            
+            <ProfilMenu />
           </div>
         </div>
       </header>

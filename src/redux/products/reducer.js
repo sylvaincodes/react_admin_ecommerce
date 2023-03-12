@@ -3,6 +3,7 @@ import { GET_PRODUCTS_SUCCESS,GET_PRODUCTS_FAIL } from "./actionTypes";
 const INIT_STATE = {
     products: [],
     product: {},
+    total_page :""
   };
 
 
@@ -11,7 +12,8 @@ const INIT_STATE = {
       case GET_PRODUCTS_SUCCESS:
         return {
           ...state,
-          products: action.payload,
+          products: action.payload.data,
+          total_page : action.payload.last_page
         };
   
       case GET_PRODUCTS_FAIL:

@@ -58,9 +58,9 @@ function GlobalFilter({
       data,
       isGlobalFilter,
       isAddOptions,
-      isAddUserList,
+      isAddList,
       handleOrderClicks,
-      handleUserClick,
+      handleAddNewClick,
       handleCustomerClick,
       isAddCustList,
       customPageSize,
@@ -157,14 +157,14 @@ function GlobalFilter({
             </div>
           </Col>
         )}
-        {isAddUserList && (
+        {isAddList && (
           <Col sm={4} >
             <div className="text-sm-end">
               <Button
                 type="button"
                 color="primary"
                 className="btn mb-2 me-2"
-                onClick={handleUserClick}
+                onClick={handleAddNewClick}
               >
                 <i className="mdi mdi-plus-circle-outline me-1" />
                 Ajouter
