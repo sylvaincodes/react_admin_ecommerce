@@ -22,14 +22,14 @@ export const getCategoriesSuccess = categories => ({
   payload: categories,
 })
 
-export const addNewCategory = caategory => ({
+export const addNewCategory = category => ({
   type: ADD_NEW_CATEGORY,
-  payload: caategory,
+  payload: category,
 })
 
-export const addCategorySuccess = caategory => ({
+export const addCategorySuccess = category => ({
   type: ADD_CATEGORY_SUCCESS,
-  payload: caategory,
+  payload: category,
 })
 
 export const addCategoryFail = error => ({
@@ -43,14 +43,14 @@ export const getCategorysFail = error => ({
 })
 
 
-export const updateCategory = caategory => ({
+export const updateCategory = category => ({
   type: UPDATE_CATEGORY,
-  payload: caategory,
+  payload: category,
 })
 
-export const updateCategorySuccess = caategory => ({
+export const updateCategorySuccess = category => ({
   type: UPDATE_CATEGORY_SUCCESS,
-  payload: caategory,
+  payload: category,
 })
 
 export const updateCategoryFail = error => ({
@@ -58,14 +58,14 @@ export const updateCategoryFail = error => ({
   payload: error,
 })
 
-export const deleteCategory = caategory => ({
+export const deleteCategory = category => ({
   type: DELETE_CATEGORY,
-  payload: caategory,
+  payload: category,
 })
 
-export const deleteCategorySuccess = caategory => ({
+export const deleteCategorySuccess = category => ({
   type: DELETE_CATEGORY_SUCCESS,
-  payload: caategory,
+  payload: category,
 })
 
 export const deleteCategoryFail = error => ({

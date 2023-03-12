@@ -24,6 +24,7 @@ import Breadcrumbs from "../../../components/breadcrumbs/Breadcrumb";
 import DeleteModal from "../../../components/modals/DeleteModal";
 import { API_URL, BASE_URL, token } from "../../../data";
 import {
+  getCategories as onGetCategories,
   addNewCategory as onAddNewCategory,
   updateCategory as onUpdateCategory,
   deleteCategory as onDeleteCategory,
@@ -59,7 +60,6 @@ const ListCategories = (props) => {
 
   const imageHandle = (e) =>  {
     const file = e.target
-    console.log(file.files[0]);
     setImage(file.files[0]);
   }
 
@@ -193,7 +193,7 @@ const ListCategories = (props) => {
       .then((response) => response.json())
       .then((data) => {
         setIsloading(false);
-        if (data.status === "201") {
+        if (data.status === 201) {
           dispatch(addCategorySuccess(data.category));
         } else {
           dispatch(addCategoryFail({ message: data.message }));
@@ -264,7 +264,7 @@ const ListCategories = (props) => {
       .then((data) => {
         setIsloading(false);
         console.log(data);
-        if (data.status === "200") {
+        if (data.status === 200) {
           dispatch(updateCategorySuccess(data.category));
         } else {
           dispatch(updateCategoryFail({ message: data.message }));
@@ -272,7 +272,6 @@ const ListCategories = (props) => {
       })
       .catch((e) => {
         setIsloading(true);
-        console.log(e);
       });
   };
 
@@ -402,7 +401,7 @@ const ListCategories = (props) => {
       setCategoryList(categories);
       setIsEdit(false);
     }
-  }, [categories,isEdit]);
+  }, [categories]);
 
   const toggle = () => {
     setModal(!modal);
@@ -578,8 +577,8 @@ const ListCategories = (props) => {
                                 }
                               >
                                 <option value="0">--Selectionner--</option>
-                                {categoryList &&
-                                  categoryList.map((cat) => (
+                                {categories &&
+                                  categories.map((cat) => (
                                     <option { ...cat.id === values.parent_id ? 'selected' : ""}  key={cat.id} value={cat.id}>
                                       {cat.name}
                                     </option>

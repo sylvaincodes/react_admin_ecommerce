@@ -40,7 +40,7 @@ import french from "../assets/images/flags/french.jpg";
 import * as RiIcons from "react-icons/ri";
 
 export const API_URL = "http://192.168.1.4:8000/api";
-export const BASE_URL = "http://192.168.1.4:3000/";
+export const BASE_URL = "http://192.168.1.4:8000/";
 export const token = JSON.parse(localStorage.getItem("user")) ?  JSON.parse(localStorage.getItem("user")).token : "";
 
 
