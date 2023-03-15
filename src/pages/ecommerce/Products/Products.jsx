@@ -7,6 +7,10 @@ import {
   CardTitle,
   Col,
   Container,
+  Dropdown,
+  DropdownItem,
+  DropdownMenu,
+  DropdownToggle,
   Form,
   Input,
   Label,
@@ -43,6 +47,7 @@ import {
 //redux
 import { useSelector, useDispatch } from "react-redux";
 import { getProductOffer } from "../../../helpers/functions";
+import { getCategoriesSuccess } from "../../../redux/categories/actions";
 
 const Products = props => {
 
@@ -64,6 +69,7 @@ const Products = props => {
   const [FilterClothes, setFilterClothes] = useState(categories['categories'])
   const [productList, setProductList] = useState([])
   const [activeTab, setActiveTab] = useState("1")
+  const [active, setActive] = useState(false)
   const [discountDataList, setDiscountDataList] = useState([])
   const [filters, setFilters] = useState({
     discount: [],
@@ -73,15 +79,32 @@ const Products = props => {
   // eslint-disable-next-line no-unused-vars
   const [totalPage, setTotalPage] = useState()
 
+  const toggle = () =>{
+    setActive(!active)
+  }
+
+
+  useEffect(() => {
+    fetch(API_URL + "/categories", {
+      headers: {
+        Authorization: "Bearer " + token,
+      },
+    })
+      .then((response) => response.json())
+      .then((array) => {
+        setFilterClothes(array);
+        dispatch(getCategoriesSuccess(array));
+      });
+  }, []);
+
+
   useEffect(() => {
     setProductList(products.products);
     setTotalPage(products['total_page']);
     setDiscountDataList(discountData)
   }, [products, discountData])
 
-  // useEffect(() => {
-  //   dispatch(onGetProducts())
-  // }, [dispatch])
+  console.log(FilterClothes);
 
   useEffect(() => {
     return (products) => {
@@ -99,7 +122,7 @@ const Products = props => {
     }
   }
 
-  const onHandleInputSearch = e => {
+  const onHandleInputSearch = e => {  
     const  { value } = e.target
     fetch(API_URL + "/search/products?search=" + value, {
       headers: {
@@ -225,17 +248,20 @@ const Products = props => {
                   <CardTitle className="mb-4">Filtres</CardTitle>
                   <div>
                     <h5 className="font-size-14 mb-3">Catégories</h5>
-                    {/* Render Cloth Categories */}
-                    <ul className="list-unstyled product-list">
-                      {FilterClothes.map((cloth, key) => (
-                        <li key={"_li_" + key}>
-                          <Link onClick={ () => onUpdateCategory(cloth.id) }>
-                            <i className="mdi mdi-chevron-right me-1" />
-                            {cloth.name}
-                          </Link>
-                        </li>
-                      ))}
-                    </ul>
+
+
+                    {FilterClothes &&
+                      FilterClothes.map((item, key) => {
+                        if (item.parent_id==0) {
+                          return <Dropdown className="dropdown"  toggle={() => setActive(!active) } isOpen={active}>
+                          <DropdownToggle key={key} className='header-item btn' tag="button" onClick={ () => onUpdateCategory(item.id) }>
+                                <i className="mdi mdi-chevron-right me-1" />
+                                {item.name}
+                          </DropdownToggle>
+                        </Dropdown>;
+                        }
+                      })}
+
                   </div>
                   <div className="mt-4 pt-3">
                     <h5 className="font-size-14 mb-4">Prix</h5>

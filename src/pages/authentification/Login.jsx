@@ -72,7 +72,7 @@ useEffect(() => {
           dispatch(loginSuccess(data.user));
           navigate("/");
          } else {
-          dispatch(loginFailure(data.message));
+          dispatch(loginFailure({ message : data.message  , key: data.errors.key}));
         }
         setIsloading(false);
       })
@@ -127,7 +127,18 @@ useEffect(() => {
                   </div>
                   <Container className="py-5">
                     <Form onSubmit={loginValidation.handleSubmit}>
-                      {error ? <Alert color="danger">{error}</Alert> : token ? <Alert color="success">Connecté</Alert> : null }
+                      
+                      
+                    {error.message ? <Alert color="danger">{error.message} :
+                <ul>
+                {error.key.map((item) =>{
+                  return <li> { item } </li>
+                })} 
+                </ul>
+
+            </Alert> : null}
+                      
+                      
                       <div className="mb-4">
                         <Label>Email</Label>
                         <Input

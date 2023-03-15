@@ -16,6 +16,10 @@ const Sidebar = (props) => {
       <div id="sidebar-menu" className={ props.sidebar ? "show" : "hide" }>
         <ul className="menu-list">
           {SidebarData.map((item, key) => {
+
+            if (item.status=="published") {
+              
+          
             return (
               <li className="menu-item" id={"li_"+key} key={key} onClick={ () => setActive(key) } >
                 <Link
@@ -48,6 +52,10 @@ const Sidebar = (props) => {
                 </ul>
               </li>
             );
+          }
+          else{
+            return ""
+          }
           })}
         </ul>
       </div>

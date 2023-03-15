@@ -11,10 +11,12 @@ const initialState = userData
   ? {
       loggedIn: true,
       user : userData,
+      error:{}
     }
   : {
     loggedIn: false,
-    user : userData
+    user : userData,
+    error:{}
     };
 
 const login = (state = initialState, action) => {
@@ -37,7 +39,8 @@ const login = (state = initialState, action) => {
     case LOGIN_FAILURE:
       state = {
         ...state,
-        loggedIn: false
+        loggedIn: false,
+        error: action.payload,
       };
       break;
 

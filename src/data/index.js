@@ -39,8 +39,8 @@ import french from "../assets/images/flags/french.jpg";
 //Languages
 import * as RiIcons from "react-icons/ri";
 
-export const API_URL = "http://192.168.1.4:8000/api";
-export const BASE_URL = "http://192.168.1.4:8000/";
+export const API_URL = "http://192.168.1.2:8000/api";
+export const BASE_URL = "http://192.168.1.2:8000/";
 export const token = JSON.parse(localStorage.getItem("user")) ?  JSON.parse(localStorage.getItem("user")).token : "";
 
 
@@ -314,6 +314,7 @@ export const SidebarData = [
   {
     title: "Ecommerce",
     path: "#",
+    status:"published",
     icon: <i className="fa fa-shopping-bag"></i>,
     iconClosed: <RiIcons.RiArrowUpSFill className="ms-auto fa fa-arrow-up" />,
     iconOpened: (
@@ -347,6 +348,7 @@ export const SidebarData = [
   {
     title: "Création de cv",
     path: "#",
+    status: "draft",
     icon: <i className="fa fa-file"></i>,
     iconClosed: <RiIcons.RiArrowUpSFill className="ms-auto fa fa-arrow-up" />,
     iconOpened: (
@@ -372,6 +374,7 @@ export const SidebarData = [
   {
     title: "Utilisateurs",
     path: "#",
+    status:"published",
     icon: <i className="fa fa-user"></i>,
     iconClosed: <RiIcons.RiArrowUpSFill className="ms-auto fa fa-arrow-up" />,
     iconOpened: (
@@ -382,6 +385,29 @@ export const SidebarData = [
       {
         title: "Comptes",
         path: "/users/list",
+      },
+    ],
+  },
+  
+  {
+    title: "Paramètres",
+    path: "#",
+    status:"published",
+    icon: <i className="fa fa-key"></i>,
+    iconClosed: <RiIcons.RiArrowUpSFill className="ms-auto fa fa-arrow-up" />,
+    iconOpened: (
+      <RiIcons.RiArrowDownSFill className="ms-auto fa fa-arrow-down" />
+    ),
+
+    subNav: [
+      {
+        title: "Slides",
+        path: "/parametres/slides/list",
+      },
+      
+      {
+        title: "Slides Items",
+        path: "/parametres/slides/items/list",
       },
     ],
   },

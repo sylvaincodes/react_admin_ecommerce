@@ -78,7 +78,8 @@ const ListCategories = (props) => {
       is_featured: (category && category.is_featured) || "",
       is_default: (category && category.is_default) || "",
       image: (category && category.image) || {},
-      image_url: (category && category.image_url) || ""
+      image_url: (category && category.image_url) || "",
+      link: (category && category.link) || ""
     },
     validationSchema: Yup.object({
       name: Yup.string().required("Entrer le libelle"),
@@ -97,9 +98,9 @@ const ListCategories = (props) => {
           order: values.order,
           is_featured: values.is_featured,
           is_default: values.is_default,
-          // image: values.image,
           image: image,
           image_url: values.image_url,
+          link: values.link,
         };
 
         //update category
@@ -117,8 +118,10 @@ const ListCategories = (props) => {
           updateCategory.is_featured,
           updateCategory.is_default,
           updateCategory.image,
-          updateCategory.image_url
+          updateCategory.image_url,
+          updateCategory.link
         );
+
       } else {
         const newCategory = {
           id: Math.floor(Math.random() * (30 - 20)) + 20,
@@ -130,9 +133,9 @@ const ListCategories = (props) => {
           order: values["order"],
           is_featured: values["is_featured"],
           is_default: values["is_default"],
-          // image: values["image"],
           image: image,
           image_url: values["image_url"],
+          link: values["link"],
         };
         // save new category
 
@@ -152,6 +155,7 @@ const ListCategories = (props) => {
           newCategory.is_default,
           newCategory.image,
           newCategory.image_url,
+          newCategory.link,
         );
         validation.resetForm();
       }
@@ -169,7 +173,8 @@ const ListCategories = (props) => {
     is_featured,
     is_default,
     image,
-    image_url
+    image_url,
+    link
   ) => {
     await fetch(API_URL + "/categories", {
       method: "POST",
@@ -188,6 +193,7 @@ const ListCategories = (props) => {
         is_default: is_default,
         image: image,
         image_url: image_url,
+        link: link,
       }),
     })
       .then((response) => response.json())
@@ -228,7 +234,8 @@ const ListCategories = (props) => {
     is_featured,
     is_default,
     image,
-    image_url
+    image_url,
+    link
   ) => {
 
     // const formData = new FormData();
@@ -257,6 +264,7 @@ const ListCategories = (props) => {
         is_default: is_default,
         image: image,
         image_url: image_url,
+        link : link
       }),
       
     })
@@ -385,7 +393,7 @@ const ListCategories = (props) => {
   );
 
   useEffect(() => {
-    if (categories && !categories.length) {
+    if (categories) {
       dispatch(getCategoriesSuccess(categories));
       setIsEdit(false);
     }
@@ -421,6 +429,8 @@ const ListCategories = (props) => {
       is_featured: category.is_featured,
       is_default: category.is_default,
       image: category.image,
+      image_url: category.image_url,
+      link: category.link,
     });
 
     setIsEdit(true);
@@ -482,15 +492,21 @@ const ListCategories = (props) => {
             breadcrumbItem="Liste des catégories"
           />
 
-          {error.message ? <Alert color="danger">{error.message}</Alert> : null}
+            {error.message ? <Alert color="danger">{error.message} :
+                <ul>
+                {error.key.map((item) =>{
+                  return <li> { item } </li>
+                })} 
+                </ul>
 
+            </Alert> : null}
           <Row>
             <Col lg="12">
               <Card>
                 <CardBody>
                   <TableContainer
                     columns={columns}
-                    data={categories}
+                    data={categoryList}
                     isGlobalFilter={true}
                     isAddList={true}
                     handleAddNewClick={handleCategoryClicks}
@@ -559,8 +575,8 @@ const ListCategories = (props) => {
                                   {validation.errors.description}
                                 </FormFeedback>
                               ) : null}
-                            </div>
-
+                            </div> 
+                            
                             <div className="mb-3">
                               <Label className="form-label">Parent</Label>
                               <Input
@@ -723,6 +739,30 @@ const ListCategories = (props) => {
                             </div>
 
                             <div className="mb-3">
+                              <Label className="form-label">Link</Label>
+                              <Input
+                                name="link"
+                                type="text"
+                                onChange={validation.handleChange}
+                                onBlur={validation.handleBlur}
+                                value={validation.values.link }
+                                invalid={
+                                  validation.touched.link &&
+                                  validation.errors.link
+                                    ? true
+                                    : false
+                                }
+                              />
+
+                              {validation.touched.link &&
+                              validation.errors.link ? (
+                                <FormFeedback type="invalid">
+                                  {validation.errors.link}
+                                </FormFeedback>
+                              ) : null}
+                            </div>
+
+                            <div className="mb-3">
                               <Label className="form-label">Image</Label>
                               <Input id="image"
                                 name="image"
@@ -738,8 +778,8 @@ const ListCategories = (props) => {
                                 }
                               />
                              
-                            </div>
-
+                            </div> 
+                            
                             <div className="mb-3">
                               <Label className="form-label">Image url</Label>
                               <Input
@@ -747,14 +787,14 @@ const ListCategories = (props) => {
                                 type="text"
                                 onChange={validation.handleChange}
                                 onBlur={validation.handleBlur}
-                                value={validation.values.image_url || ""}
+                                value={validation.values.image_url }
                                 invalid={
                                   validation.touched.image_url &&
                                   validation.errors.image_url
                                     ? true
                                     : false
                                 }
-                              ></Input>
+                              />
 
                               {validation.touched.image_url &&
                               validation.errors.image_url ? (
@@ -763,7 +803,7 @@ const ListCategories = (props) => {
                                 </FormFeedback>
                               ) : null}
                             </div>
-
+                            
                           </Col>
                         </Row>
                         <Row>

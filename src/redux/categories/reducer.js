@@ -52,7 +52,7 @@ const INIT_STATE = {
             ...state,
             categories: state.categories.map(categorie =>
               categorie.id.toString() === action.payload.id.toString()
-                ? { categorie, ...action.payload }
+                ?  action.payload 
                 : categorie
             ),
           };

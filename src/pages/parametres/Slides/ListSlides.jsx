@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef, useMemo } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import TableContainer from "../../components/tables/TableContainer";
+import { Link } from "react-router-dom";
+import TableContainer from "../../../components/tables/TableContainer";
 import {
   Card,
   CardBody,
@@ -19,96 +19,108 @@ import {
 } from "reactstrap";
 import * as Yup from "yup";
 import { useFormik } from "formik";
-import { Name, Email } from "./ListUsersCol";
-import Breadcrumbs from "../../components/breadcrumbs/Breadcrumb";
-import DeleteModal from "../../components/modals/DeleteModal";
-import { API_URL } from "../../data";
-import { token } from "../../data";
+import { Name } from "./ListSlidesCol";
+import Breadcrumbs from "../../../components/breadcrumbs/Breadcrumb";
+import DeleteModal from "../../../components/modals/DeleteModal";
+import { API_URL, token } from "../../../data";
 import {
-  getUsers as onGetUsers,
-  addNewUser as onAddNewUser,
-  updateUser as onUpdateUser,
-  deleteUser as onDeleteUser,
-  getUsersSuccess,
-  addUserSuccess,
-  addUserFail,
-  updateUserSuccess,
-  updateUserFail,
-  deleteUserSuccess,
-  deleteUserFail,
-} from "../../redux/users/actions";
+  // getSlides as onGetSlides,
+  addNewSlide as onAddNewSlide,
+  updateSlide as onUpdateSlide,
+  deleteSlide as onDeleteSlide,
+  getSlidesSuccess,
+  addSlideSuccess,
+  addSlideFail,
+  updateSlideSuccess,
+  updateSlideFail,
+  deleteSlideSuccess,
+  deleteSlideFail,
+} from "../../../redux/slides/actions";
 
 import { isEmpty } from "lodash";
 
 //redux
 import { useSelector, useDispatch } from "react-redux";
-import LoadingSpinner from "../../components/Loading/LoadingSpinner";
+import LoadingSpinner from "../../../components/Loading/LoadingSpinner";
 
-const ListUsers = (props) => {
-
+const ListSlides = (props) => {
   //meta title
-  document.title = "Liste des utilisateurs | Admin ";
+  // no-dupe-keys
+  document.title = "Liste des banners | Admin ";
 
-  const [isloading, setIsloading] = useState(false)
+  const [isloading, setIsloading] = useState(false);
   const dispatch = useDispatch();
-  const [user, setUser] = useState();
-  const error = useSelector((state) => state.users.error);
+  const [slide, setSlide] = useState();
+  const error = useSelector((state) => state.slides.error);
 
-  const navigate = useNavigate();
+  const { slides } = useSelector((state) => ({
+    slides: state.slides.slides,
+  }));
+
   //validation
   const validation = useFormik({
     //enableReinitialize : use this flag when initial values needs to be changed
     enableReinitialize: true,
 
     initialValues: {
-      username: (user && user.username) || "",
-      password: (user && user.password) || "",
-      password_confirmation: (user && user.password_confirmation) || "",
-      email: (user && user.email) || "",
+      name: (slide && slide.name) || "",
+      key: (slide && slide.key) || "",
+      description: (slide && slide.description) || "",
+      status: (slide && slide.status) || "",
     },
     validationSchema: Yup.object({
-      username: Yup.string().required("Entrer le nom d'utilisateur"),
-      password: Yup.string().required("Entrer le mot de passe"),
-      password_confirmation: Yup.string().required("Confirmer le mot de passe"),
-      email: Yup.string().required("Entrer l'email"),
+      name: Yup.string().required("Entrer le libelle"),
+      key: Yup.string().required("Entrer la clé"),
+      description: Yup.string().required("Entrer la description"),
+      status: Yup.string().required("Selectionner le status"),
     }),
     onSubmit: (values) => {
       if (isEdit) {
-        const updateUser = {
-          id: user.id,
-          username: values.username,
-          password: values.password,
-          password_confirmation: values.password_confirmation,
-          email: values.email,
+        const updateSlide = {
+          id: slide.id,
+          name: values.name,
+          key: values.key,
+          description: values.description,
+          status: values.status,
         };
 
-        //update user
-        dispatch(onUpdateUser(updateUser));
+        // console.log(updateSlide);
+        // return false;
+
+        //update slide
+        dispatch(onUpdateSlide(updateSlide));
         validation.resetForm();
         setIsEdit(false);
         setIsloading(true);
-        editUserApi(
-          updateUser.username,
-          updateUser.password,
-          updateUser.password_confirmation,
-          updateUser.email
+        editSlideApi(
+          updateSlide.name,
+          updateSlide.key,
+          updateSlide.description,
+          updateSlide.status,
+
         );
       } else {
-        const newUser = {
+        const newSlide = {
           id: Math.floor(Math.random() * (30 - 20)) + 20,
-          username: values["username"],
-          password: values["password"],
-          password_confirmation: values["password_confirmation"],
-          email: values["email"],
+          name: values["name"],
+          key: values["key"],
+          description: values["description"],
+          status: values["status"],
+
         };
-        // save new user
+        // save new slide
+
+        // console.log(newSlide);
+        // return false;
+
         setIsloading(true);
-        dispatch(onAddNewUser(newUser));
-        addUserApi(
-          newUser.username,
-          newUser.password,
-          newUser.password_confirmation,
-          newUser.email
+        dispatch(onAddNewSlide(newSlide));
+        addSlideApi(
+          newSlide.name,
+          newSlide.key,
+          newSlide.description,
+          newSlide.status,
+
         );
         validation.resetForm();
       }
@@ -116,32 +128,33 @@ const ListUsers = (props) => {
     },
   });
 
-  const addUserApi = async (
-    username,
-    password,
-    password_confirmation,
-    email
+  const addSlideApi = async (
+    name,
+    key,
+    description,
+    status
   ) => {
-    await fetch(API_URL+"/users", {
+    await fetch(API_URL + "/slides", {
       method: "POST",
       headers: {
         Authorization: "Bearer " + token,
         "Content-type": "application/json",
       },
       body: JSON.stringify({
-        username: username,
-        email: email,
-        password: password,
-        password_confirmation: password_confirmation,
+        name: name,
+        description: description,
+        key: key,
+        status: status,
+
       }),
     })
       .then((response) => response.json())
       .then((data) => {
         setIsloading(false);
-        if (data.status == "201") {
-          dispatch(addUserSuccess(data.user));
+        if (data.status === 201) {
+          dispatch(addSlideSuccess(data.slide));
         } else {
-          dispatch(addUserFail({ message: data.message }));
+          dispatch(addSlideFail({ message: data.message , key : data.errors.key }));
         }
       })
       .catch((e) => {
@@ -149,8 +162,8 @@ const ListUsers = (props) => {
       });
   };
 
-  const deleteUserApi = async (user) => {
-    await fetch(API_URL+"/users/" + user.id, {
+  const deleteSlideApi = async (slide) => {
+    await fetch(API_URL + "/slides/" + slide.id, {
       method: "DELETE",
       headers: {
         Authorization: "Bearer " + token,
@@ -158,69 +171,65 @@ const ListUsers = (props) => {
     }).then((response) => {
       const data = response.json();
       setIsloading(false);
-      dispatch(deleteUserSuccess(user));
-      dispatch(deleteUserFail({ message: data.message }));
+      dispatch(deleteSlideSuccess(slide));
+      dispatch(deleteSlideFail({ message: data.message }));
     });
   };
 
-  const editUserApi = async (
-    username,
-    password,
-    password_confirmation,
-    email
+  const editSlideApi = async (
+    name,
+    key,
+    description,
+    status
+
   ) => {
-    await fetch(API_URL+"/users/" + user.id, {
+    await fetch(API_URL + "/slides/" + slide.id, {
       method: "PUT",
       headers: {
         Authorization: "Bearer " + token,
         "Content-type": "application/json",
       },
-      body: JSON.stringify({
-        username: username,
-        email: email,
-        password: password,
-        password_confirmation: password_confirmation,
+       body:
+      JSON.stringify({
+        name: name,
+        description: description,
+        key: key,
+        status: status
       }),
+      
     })
       .then((response) => response.json())
       .then((data) => {
         setIsloading(false);
-        if (data.status == "200") {
-          dispatch(updateUserSuccess(data.user));
-          dispatch(updateUserFail({ message: data.message }));
+        console.log(data);
+        if (data.status === 200) {
+          dispatch(updateSlideSuccess(data.slide));
         } else {
-          dispatch(updateUserFail({ message: data.message }));
+          dispatch(updateSlideFail({ message: data.message ,key : data.errors.key }));
         }
       })
       .catch((e) => {
         setIsloading(true);
-        console.log(e);
       });
   };
 
-  const [userList, setUserList] = useState([]);
+  const [categoryList, setSlideList] = useState([]);
   const [modal, setModal] = useState(false);
   const [isEdit, setIsEdit] = useState(false);
 
   useEffect(() => {
-    fetch(API_URL+"/users", {
+    fetch(API_URL + "/slides", {
       headers: {
         Authorization: "Bearer " + token,
       },
     })
       .then((response) => response.json())
-      .then((data) => {
-        if(data.status==401){
-          navigate('')
-        }
-        setUserList(data);
-        dispatch(getUsersSuccess(data));
+      .then((array) => {
+        setSlideList(array);
+        dispatch(getSlidesSuccess(array));
       });
-  }, []);
+  }, [dispatch]);
 
-  const { users } = useSelector((state) => ({
-    users: state.users.users,
-  }));
 
   const columns = useMemo(
     () => [
@@ -230,68 +239,41 @@ const ListUsers = (props) => {
           return <input type="checkbox" />;
         },
       },
+      
       {
-        Header: "Avatar",
-        accessor: "avatar_id",
-        disableFilters: true,
-        filterable: false,
-        accessor: (cellProps) => (
-          <>
-            {!cellProps.avatar_id ? (
-              <div className="avatar-xs">
-                <span className="avatar-title rounded-circle">
-                  {cellProps.username.charAt(0)}
-                </span>
-              </div>
-            ) : (
-              <div>
-                <img
-                  className="rounded-circle avatar-xs"
-                  src={cellProps.avatar_id}
-                  alt=""
-                />
-              </div>
-            )}
-          </>
-        ),
-      },
-      {
-        Header: "Nom d'utilisateur",
-        accessor: "username",
+        Header: "Libellé",
+        accessor: "name",
         filterable: true,
         Cell: (cellProps) => {
           return <Name {...cellProps} />;
         },
-      },
+      }, 
+      
       {
-        Header: "Email",
-        accessor: "email",
+        Header: "Clé",
+        accessor: "key",
         filterable: true,
         Cell: (cellProps) => {
-          return <Email {...cellProps} />;
+          return <Name {...cellProps} />;
         },
-      },
+      }, 
+      
       {
-        Header: "Type d'utilisateur",
-        accessor: "type",
+        Header: "Status",
+        accessor: "status",
         filterable: true,
-        accessor: (cellProps) => (
-          <>
-            {cellProps.type >= 1 ? (
-              <span className="badge badge-soft-primary font-size-11 m-1 ">Admin</span>
-            ) : cellProps.super_user >= 2 ? (
-              <div>
-                <span className="badge badge-soft-primary font-size-11 m-1 ">Super Admin</span>
-              </div>
-            ) : (
-              <div>
-                <span className="badge badge-soft-primary font-size-11 m-1 ">
-                  Client
-                </span>
-              </div>
-            )}
-          </>
-        ),
+        Cell: (cellProps) => {
+          return <Name {...cellProps} />;
+        },
+      }, 
+      
+      {
+        Header: "Description",
+        accessor: "description",
+        filterable: true,
+        Cell: (cellProps) => {
+          return <Name {...cellProps} />;
+        },
       },
 
       {
@@ -303,8 +285,8 @@ const ListUsers = (props) => {
                 to="#"
                 className="text-success"
                 onClick={() => {
-                  const userData = cellProps.row.original;
-                  handleUserClick(userData);
+                  const categoryData = cellProps.row.original;
+                  handleSlideClick(categoryData);
                 }}
               >
                 <i className="mdi mdi-pencil font-size-18" id="edittooltip" />
@@ -316,8 +298,8 @@ const ListUsers = (props) => {
                 to="#"
                 className="text-danger"
                 onClick={() => {
-                  const userData = cellProps.row.original;
-                  onClickDelete(userData);
+                  const categoryData = cellProps.row.original;
+                  onClickDelete(categoryData);
                 }}
               >
                 <i className="mdi mdi-delete font-size-18" id="deletetooltip" />
@@ -334,37 +316,37 @@ const ListUsers = (props) => {
   );
 
   useEffect(() => {
-    if (users && !users.length) {
-      dispatch(onGetUsers());
+    if (slides && !slides.length) {
+      dispatch(getSlidesSuccess(slides));
       setIsEdit(false);
     }
-  }, [dispatch, users]);
+  }, [dispatch, slides]);
 
   useEffect(() => {
-    setUser(users);
+    setSlideList(slides);
     setIsEdit(false);
-  }, [users]);
+  }, [slides]);
 
   useEffect(() => {
-    if (!isEmpty(users) && !!isEdit) {
-      setUser(users);
+    if (!isEmpty(slides) && !!isEdit) {
+      setSlideList(slides);
       setIsEdit(false);
     }
-  }, [users]);
+  }, [slides]);
 
   const toggle = () => {
     setModal(!modal);
   };
 
-  const handleUserClick = (arg) => {
-    const user = arg;
+  const handleSlideClick = (arg) => {
+    const slide = arg;
 
-    setUser({
-      id: user.id,
-      username: user.username,
-      password: user.password,
-      password_confirmation: user.password_confirmation,
-      email: user.email,
+    setSlide({
+      id: slide.id,
+      name: slide.name,
+      description: slide.description,
+      key: slide.key,
+      status: slide.status
     });
 
     setIsEdit(true);
@@ -388,33 +370,33 @@ const ListUsers = (props) => {
   //delete customer
   const [deleteModal, setDeleteModal] = useState(false);
 
-  const onClickDelete = (user) => {
-    setUser(user);
+  const onClickDelete = (slide) => {
+    setSlide(slide);
     setDeleteModal(true);
   };
 
-  const handleDeleteUser = () => {
-    dispatch(onDeleteUser(user));
+  const handleDeleteSlide = () => {
+    dispatch(onDeleteSlide(slide));
     onPaginationPageChange(1);
     setDeleteModal(false);
     setIsloading(true);
-    deleteUserApi(user);
+    deleteSlideApi(slide);
   };
 
-  const handleUserClicks = () => {
-    setUser("");
+  const handleSlideClicks = () => {
+    setSlide("");
     setIsEdit(false);
     toggle();
   };
 
-  const keyField = "id";
+  // const keyField = "id";
 
   return (
     <React.Fragment>
       <LoadingSpinner isloading={isloading} />
       <DeleteModal
         show={deleteModal}
-        onDeleteClick={handleDeleteUser}
+        onDeleteClick={handleDeleteSlide}
         onCloseClick={() => setDeleteModal(false)}
       />
       <div className="page-content">
@@ -422,28 +404,29 @@ const ListUsers = (props) => {
           {/* Render Breadcrumbs */}
 
           <Breadcrumbs
-            title="Ecommerce"
-            breadcrumbItem="Liste des utilisateurs"
+            title="Paramètres"
+            breadcrumbItem="Liste des slides"
           />
 
-            {error.message ? <Alert color="danger">{error.message} :
+          {error.message ? <Alert color="danger">{error.message} :
                 <ul>
                 {error.key.map((item) =>{
                   return <li> { item } </li>
                 })} 
                 </ul>
 
-            </Alert> : null}  
+            </Alert> : null}
+
           <Row>
             <Col lg="12">
               <Card>
                 <CardBody>
                   <TableContainer
                     columns={columns}
-                    data={users}
+                    data={slides}
                     isGlobalFilter={true}
                     isAddList={true}
-                    handleAddNewClick={handleUserClicks}
+                    handleAddNewClick={handleSlideClicks}
                     customPageSize={10}
                     className="custom-header-css"
                   />
@@ -456,7 +439,7 @@ const ListUsers = (props) => {
                         : "Formulaire de création"}
                     </ModalHeader>
                     <ModalBody>
-                      <Form
+                      <Form encType="multipart/form-data"
                         onSubmit={(e) => {
                           e.preventDefault();
                           validation.handleSubmit();
@@ -466,101 +449,105 @@ const ListUsers = (props) => {
                         <Row form="true">
                           <Col xs={12}>
                             <div className="mb-3">
-                              <Label className="form-label">
-                                Nom d'utilisateur
-                              </Label>
+                              <Label className="form-label">Libelle</Label>
                               <Input
-                                name="username"
+                                name="name"
                                 type="text"
                                 onChange={validation.handleChange}
                                 onBlur={validation.handleBlur}
-                                value={validation.values.username || ""}
+                                value={validation.values.name || ""}
                                 invalid={
-                                  validation.touched.username &&
-                                  validation.errors.username
+                                  validation.touched.name &&
+                                  validation.errors.name
                                     ? true
                                     : false
                                 }
                               />
-                              {validation.touched.username &&
-                              validation.errors.username ? (
+                              {validation.touched.name &&
+                              validation.errors.name ? (
                                 <FormFeedback type="invalid">
-                                  {validation.errors.username}
-                                </FormFeedback>
-                              ) : null}
-                            </div>
-                            <div className="mb-3">
-                              <Label className="form-label">Mot de passe</Label>
-                              <Input
-                                name="password"
-                                type="text"
-                                onChange={validation.handleChange}
-                                onBlur={validation.handleBlur}
-                                value={validation.values.password || ""}
-                                invalid={
-                                  validation.touched.password &&
-                                  validation.errors.password
-                                    ? true
-                                    : false
-                                }
-                              />
-                              {validation.touched.password &&
-                              validation.errors.password ? (
-                                <FormFeedback type="invalid">
-                                  {validation.errors.password}
-                                </FormFeedback>
-                              ) : null}
-                            </div>
-                            <div className="mb-3">
-                              <Label className="form-label">
-                                Confirmer mot de passe
-                              </Label>
-                              <Input
-                                name="password_confirmation"
-                                type="text"
-                                onChange={validation.handleChange}
-                                onBlur={validation.handleBlur}
-                                value={
-                                  validation.values.password_confirmation || ""
-                                }
-                                invalid={
-                                  validation.touched.password_confirmation &&
-                                  validation.errors.password_confirmation
-                                    ? true
-                                    : false
-                                }
-                              />
-                              {validation.touched.password_confirmation &&
-                              validation.errors.password_confirmation ? (
-                                <FormFeedback type="invalid">
-                                  {validation.errors.password_confirmation}
+                                  {validation.errors.name}
                                 </FormFeedback>
                               ) : null}
                             </div>
 
                             <div className="mb-3">
-                              <Label className="form-label">Email</Label>
+                              <Label className="form-label">Description</Label>
                               <Input
-                                name="email"
-                                label="Email"
-                                type="email"
+                                name="description"
+                                type="text"
                                 onChange={validation.handleChange}
                                 onBlur={validation.handleBlur}
-                                value={validation.values.email || ""}
+                                value={validation.values.description || ""}
                                 invalid={
-                                  validation.touched.email &&
-                                  validation.errors.email
+                                  validation.touched.description &&
+                                  validation.errors.description
                                     ? true
                                     : false
                                 }
                               />
-                              {validation.touched.email &&
-                              validation.errors.email ? (
+                              {validation.touched.description &&
+                              validation.errors.description ? (
                                 <FormFeedback type="invalid">
-                                  {validation.errors.email}
+                                  {validation.errors.description}
                                 </FormFeedback>
                               ) : null}
                             </div>
+
+                            <div className="mb-3">
+                              <Label className="form-label">Clé</Label>
+                              <Input
+                                name="key"
+                                type="text"
+                                onChange={validation.handleChange}
+                                onBlur={validation.handleBlur}
+                                value={validation.values.key || ""}
+                                invalid={
+                                  validation.touched.key &&
+                                  validation.errors.key
+                                    ? true
+                                    : false
+                                }
+                              >
+                                
+                              </Input>
+
+                              {validation.touched.key &&
+                              validation.errors.key ? (
+                                <FormFeedback type="invalid">
+                                  {validation.errors.key}
+                                </FormFeedback>
+                              ) : null}
+                            </div>
+
+                            <div className="mb-3">
+                              <Label className="form-label">Status</Label>
+                              <Input
+                                name="status"
+                                type="select"
+                                onChange={validation.handleChange}
+                                onBlur={validation.handleBlur}
+                                value={validation.values.status || ""}
+                                invalid={
+                                  validation.touched.status &&
+                                  validation.errors.status
+                                    ? true
+                                    : false
+                                }
+                              >
+                                <option value="">--Selectionner--</option>
+                                <option value="published">Publié</option>
+                                <option value="draft">Brouillon</option>
+                              </Input>
+
+                              {validation.touched.status &&
+                              validation.errors.status ? (
+                                <FormFeedback type="invalid">
+                                  {validation.errors.status}
+                                </FormFeedback>
+                              ) : null}
+                            </div>
+
                           </Col>
                         </Row>
                         <Row>
@@ -568,7 +555,7 @@ const ListUsers = (props) => {
                             <div className="text-end">
                               <button
                                 type="submit"
-                                className="btn btn-success save-user"
+                                className="btn btn-success save-slide"
                               >
                                 Enregistrer
                               </button>
@@ -588,4 +575,4 @@ const ListUsers = (props) => {
   );
 };
 
-export default ListUsers;
+export default ListSlides;

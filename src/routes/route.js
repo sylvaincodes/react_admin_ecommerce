@@ -73,8 +73,8 @@ const Authmiddleware = ({ component: Component, ...rest }) => {
 // }
 
 Authmiddleware.propTypes = {
-  // isAuthProtected: PropTypes.bool,
   component: PropTypes.any,
+  // isAuthProtected: PropTypes.bool,
   // location: PropTypes.object,
   // layout: PropTypes.any, 
 }
