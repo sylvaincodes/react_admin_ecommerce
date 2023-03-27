@@ -8,6 +8,8 @@ import products from "./products/reducer";
 import categories from "./categories/reducer"
 import slides from './slides/reducer'
 import slidesitems from './slidesitems/reducer'
+import brands from "./brands/reducer";
+import collections from "./collections/reducer"
 
 const rootReducer = combineReducers(
   {
@@ -17,6 +19,8 @@ const rootReducer = combineReducers(
     categories,
     slides,
     slidesitems,
+    brands,
+    collections
   },
 
 );

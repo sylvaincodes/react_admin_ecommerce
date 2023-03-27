@@ -16,46 +16,62 @@ import {
   Input,
   Form,
   Alert,
+  Fade,
 } from "reactstrap";
 import * as Yup from "yup";
 import { useFormik } from "formik";
-import { Name } from "./ListCategoriesCol";
+import { Name } from "./ListBrandsCol";
 import Breadcrumbs from "../../../components/breadcrumbs/Breadcrumb";
 import DeleteModal from "../../../components/modals/DeleteModal";
 import { API_URL, BASE_URL, token } from "../../../data";
 import {
-  getCategories as onGetCategories,
-  addNewCategory as onAddNewCategory,
-  updateCategory as onUpdateCategory,
-  deleteCategory as onDeleteCategory,
-  getCategoriesSuccess,
-  addCategorySuccess,
-  addCategoryFail,
-  updateCategorySuccess,
-  updateCategoryFail,
-  deleteCategorySuccess,
-  deleteCategoryFail,
-} from "../../../redux/categories/actions";
+  getBrands as onGetBrands,
+  addNewBrand as onAddNewBrand,
+  updateBrand as onUpdateBrand,
+  deleteBrand as onDeleteBrand,
+  getBrandsSuccess,
+  addBrandSuccess,
+  addBrandFail,
+  updateBrandSuccess,
+  updateBrandFail,
+  deleteBrandSuccess,
+  deleteBrandFail,
+} from "../../../redux/brands/actions";
 
 import { isEmpty, values } from "lodash";
 
 //redux
 import { useSelector, useDispatch } from "react-redux";
 import LoadingSpinner from "../../../components/Loading/LoadingSpinner";
+import { errorsInArray } from "../../../helpers/functions";
 
-const ListCategories = (props) => {
+const ListBrands = (props) => {
   //meta title
   // no-dupe-keys
   document.title = "Liste des catégories | Admin ";
 
   const [isloading, setIsloading] = useState(false);
-  const [image, setImage] = useState({});
+  const [logo, setImage] = useState({});
   const dispatch = useDispatch();
-  const [category, setCategory] = useState();
-  const error = useSelector((state) => state.categories.error);
+  const [brand, setBrand] = useState();
+  const [brandList, setBrandList] = useState([]);
+  const [modal, setModal] = useState(false);
+  const [isEdit, setIsEdit] = useState(false);
+  
+  const checkboxRef = useRef("");
 
-  const { categories } = useSelector((state) => ({
-    categories: state.categories.categories,
+
+  const handleChangeCheckbox = (e) => {
+    // setCheckbox(checkboxRef.current.checked);
+    console.log(e.target.value);
+    //e.target.checked=false;
+    e.target.setAttribute("className","false");
+  };
+
+  const error = useSelector( state => state.brands.error);
+
+  const { brands } = useSelector((state) => ({
+    brands: state.brands.brands,
   }));
 
   const imageHandle = (e) =>  {
@@ -69,95 +85,75 @@ const ListCategories = (props) => {
     enableReinitialize: true,
 
     initialValues: {
-      name: (category && category.name) || "",
-      parent_id: (category && category.parent_id) || "",
-      description: (category && category.description) || "",
-      status: (category && category.status) || "",
-      icon: (category && category.icon) || "",
-      order: (category && category.order) || "",
-      is_featured: (category && category.is_featured) || "",
-      is_default: (category && category.is_default) || "",
-      image: (category && category.image) || {},
-      image_url: (category && category.image_url) || "",
-      link: (category && category.link) || ""
+      name: (brand && brand.name) || "",
+      description: (brand && brand.description) || "",
+      status: (brand && brand.status) || "",
+      website: (brand && brand.website) || "",
+      is_featured: (brand && brand.is_featured) || "",
+      logo: (brand && brand.logo) || {},
+      order: (brand && brand.order) || "",
     },
     validationSchema: Yup.object({
       name: Yup.string().required("Entrer le libelle"),
       description: Yup.string().required("Entrer la description"),
       status: Yup.string().required("Selectionner le status"),
       is_featured: Yup.string().required("Selectionner"),
-      is_default: Yup.string().required("Selectionner"),
     }),
     onSubmit: (values) => {
       if (isEdit) {
-        const updateCategory = {
-          id: category.id,
+        const updateBrand = {
+          id: brand.id,
           name: values.name,
-          parent_id: values.parent_id,
           description: values.description,
           status: values.status,
-          icon: values.icon,
+          website: values.website,
+          is_featured: values.is_featured ,
+          logo: logo,
           order: values.order,
-          is_featured: values.is_featured,
-          is_default: values.is_default,
-          image: image,
-          image_url: values.image_url,
-          link: values.link,
         };
 
-        //update category
-        dispatch(onUpdateCategory(updateCategory));
+        //  console.log(updateBrand);
+        //  return false;
+        
+        //update brand
+        dispatch(onUpdateBrand(updateBrand));
         validation.resetForm();
         setIsEdit(false);
         setIsloading(true);
-        editCategoryApi(
-          updateCategory.name,
-          updateCategory.parent_id,
-          updateCategory.description,
-          updateCategory.status,
-          updateCategory.icon,
-          updateCategory.order,
-          updateCategory.is_featured,
-          updateCategory.is_default,
-          updateCategory.image,
-          updateCategory.image_url,
-          updateCategory.link
+        editBrandApi(
+          updateBrand.name,
+          updateBrand.description,
+          updateBrand.status,
+          updateBrand.website,
+          updateBrand.is_featured,
+          updateBrand.logo,
+          updateBrand.order,
         );
 
       } else {
-        const newCategory = {
+        const newBrand = {
           id: Math.floor(Math.random() * (30 - 20)) + 20,
           name: values["name"],
-          parent_id: values["parent_id"],
           description: values["description"],
           status: values["status"],
-          icon: values["icon"],
+          website: values["website"],
+          is_featured: values.is_featured,
+          logo:  logo,
           order: values["order"],
-          is_featured: values["is_featured"],
-          is_default: values["is_default"],
-          image: image,
-          image_url: values["image_url"],
-          link: values["link"],
         };
-        // save new category
+        // save new brand
 
-        // console.log(newCategory);
-        // return false;
-
+ 
         setIsloading(true);
-        dispatch(onAddNewCategory(newCategory));
-        addCategoryApi(
-          newCategory.name,
-          newCategory.parent_id,
-          newCategory.description,
-          newCategory.status,
-          newCategory.icon,
-          newCategory.order,
-          newCategory.is_featured,
-          newCategory.is_default,
-          newCategory.image,
-          newCategory.image_url,
-          newCategory.link,
+        dispatch(onAddNewBrand(newBrand));
+        addBrandApi(
+          newBrand.name,
+          newBrand.description,
+          newBrand.status,
+          newBrand.website,
+          newBrand.is_featured,
+          newBrand.logo,
+          newBrand.order,
         );
         validation.resetForm();
       }
@@ -165,20 +161,16 @@ const ListCategories = (props) => {
     },
   });
 
-  const addCategoryApi = async (
+  const addBrandApi = async (
     name,
-    parent_id,
     description,
     status,
-    icon,
-    order,
+    website,
     is_featured,
-    is_default,
-    image,
-    image_url,
-    link
+    logo,
+    order,
   ) => {
-    await fetch(API_URL + "/categories", {
+    await fetch(API_URL + "/brands", {
       method: "POST",
       headers: {
         Authorization: "Bearer " + token,
@@ -187,24 +179,21 @@ const ListCategories = (props) => {
       body: JSON.stringify({
         name: name,
         description: description,
-        parent_id: parent_id,
         status: status,
-        icon: icon,
-        order: order,
+        website: website,
         is_featured: is_featured,
-        is_default: is_default,
-        image: image,
-        image_url: image_url,
-        link: link,
+        logo: logo,
+        order: order,
       }),
     })
       .then((response) => response.json())
       .then((data) => {
         setIsloading(false);
+       
         if (data.status === 201) {
-          dispatch(addCategorySuccess(data.category));
+          dispatch(addBrandSuccess(data.brand));
         } else {
-          dispatch(addCategoryFail({ message: data.message }));
+          dispatch(addBrandFail({ message: data.message , key : errorsInArray(data) }));
         }
       })
       .catch((e) => {
@@ -212,8 +201,8 @@ const ListCategories = (props) => {
       });
   };
 
-  const deleteCategoryApi = async (category) => {
-    await fetch(API_URL + "/categories/" + category.id, {
+  const deleteBrandApi = async (brand) => {
+    await fetch(API_URL + "/brands/" + brand.id, {
       method: "DELETE",
       headers: {
         Authorization: "Bearer " + token,
@@ -221,52 +210,35 @@ const ListCategories = (props) => {
     }).then((response) => {
       const data = response.json();
       setIsloading(false);
-      dispatch(deleteCategorySuccess(category));
-      dispatch(deleteCategoryFail({ message: data.message }));
+      dispatch(deleteBrandSuccess(brand));
     });
   };
 
-  const editCategoryApi = async (
+  const editBrandApi = async (
     name,
-    parent_id,
     description,
     status,
-    icon,
-    order,
+    website,
     is_featured,
-    is_default,
-    image,
-    image_url,
-    link
+    logo,
+    order,
   ) => {
 
-    // const formData = new FormData();
-    // formData.append("_method","PUT");
-    // formData.append("name",name);
-    // formData.append("description",description);
-    // formData.append("image",image);
-
-    await fetch(API_URL + "/categories/" + category.id, {
+    await fetch(API_URL + "/brands/" + brand.id, {
       method: "PUT",
       headers: {
         Authorization: "Bearer " + token,
         "Content-type": "application/json",
-        // "Content-type": "multipart/form-data",
       },
        body:
-          // formData
       JSON.stringify({
         name: name,
         description: description,
-        parent_id: parent_id,
         status: status,
-        icon: icon,
-        order: order,
+        website: website,
         is_featured: is_featured,
-        is_default: is_default,
-        image: image,
-        image_url: image_url,
-        link : link
+        logo: logo,
+        order: order,
       }),
       
     })
@@ -275,9 +247,9 @@ const ListCategories = (props) => {
         setIsloading(false);
         console.log(data);
         if (data.status === 200) {
-          dispatch(updateCategorySuccess(data.category));
+          dispatch(updateBrandSuccess(data.brand));
         } else {
-          dispatch(updateCategoryFail({ message: data.message }));
+          dispatch(updateBrandFail({ message: data.message }));
         }
       })
       .catch((e) => {
@@ -285,23 +257,20 @@ const ListCategories = (props) => {
       });
   };
 
-  const [categoryList, setCategoryList] = useState([]);
-  const [modal, setModal] = useState(false);
-  const [isEdit, setIsEdit] = useState(false);
-
   useEffect(() => {
-    fetch(API_URL + "/categories", {
+    fetch(API_URL + "/brands", {
       headers: {
         Authorization: "Bearer " + token,
       },
     })
       .then((response) => response.json())
       .then((array) => {
-        setCategoryList(array);
-        dispatch(getCategoriesSuccess(array));
+        setBrandList(array);
+        console.log(array);
+        dispatch(getBrandsSuccess(array));
       });
-  }, [dispatch]);
-
+    }, [dispatch]);
+    
 
   const columns = useMemo(
     () => [
@@ -313,13 +282,13 @@ const ListCategories = (props) => {
       },
       {
         Header: "Thumball",
-        accessor: "image",
+        accessor: "logo",
         disableFilters: true,
         filterable: false,
 
         accessor: (cellProps) => (
           <>
-            {!cellProps.image ? (
+            {!cellProps.logo ? (
               <div className="avatar-xs">
                 <span className="avatar-title rounded-circle">
                   {cellProps.name.charAt(0)}
@@ -329,7 +298,7 @@ const ListCategories = (props) => {
               <div>
                 <img
                   className="rounded-circle avatar-xs"
-                  src={ cellProps.image_url ? cellProps.image_url :  BASE_URL+'media/categories/'+cellProps.image}
+                  src={ cellProps.url ? cellProps.url :  BASE_URL+'media/brands/'+cellProps.logo}
                   alt=""
                 />
               </div>
@@ -364,8 +333,8 @@ const ListCategories = (props) => {
                 to="#"
                 className="text-success"
                 onClick={() => {
-                  const categoryData = cellProps.row.original;
-                  handleCategoryClick(categoryData);
+                  const brandData = cellProps.row.original;
+                  handleBrandClick(brandData);
                 }}
               >
                 <i className="mdi mdi-pencil font-size-18" id="edittooltip" />
@@ -377,8 +346,8 @@ const ListCategories = (props) => {
                 to="#"
                 className="text-danger"
                 onClick={() => {
-                  const categoryData = cellProps.row.original;
-                  onClickDelete(categoryData);
+                  const brandData = cellProps.row.original;
+                  onClickDelete(brandData);
                 }}
               >
                 <i className="mdi mdi-delete font-size-18" id="deletetooltip" />
@@ -395,44 +364,40 @@ const ListCategories = (props) => {
   );
 
   useEffect(() => {
-    if (categories) {
-      dispatch(getCategoriesSuccess(categories));
+    if (brands) {
+      dispatch(getBrandsSuccess(brands));
       setIsEdit(false);
     }
-  }, [dispatch, categories]);
+  }, [dispatch, brands]);
 
   useEffect(() => {
-    setCategoryList(categories);
+    setBrandList(brands);
     setIsEdit(false);
-  }, [categories]);
+  }, [brands]);
 
   useEffect(() => {
-    if (!isEmpty(categories) && !!isEdit) {
-      setCategoryList(categories);
+    if (!isEmpty(brands) && !!isEdit) {
+      setBrandList(brands);
       setIsEdit(false);
     }
-  }, [categories]);
+  }, [brands]);
 
   const toggle = () => {
     setModal(!modal);
   };
 
-  const handleCategoryClick = (arg) => {
-    const category = arg;
+  const handleBrandClick = (arg) => {
+    const brand = arg;
 
-    setCategory({
-      id: category.id,
-      name: category.name,
-      description: category.description,
-      parent_id: category.parent_id,
-      status: category.status,
-      icon: category.icon,
-      order: category.order,
-      is_featured: category.is_featured,
-      is_default: category.is_default,
-      image: category.image,
-      image_url: category.image_url,
-      link: category.link,
+    setBrand({
+      id: brand.id,
+      name: brand.name,
+      description: brand.description,
+      status: brand.status,
+      website: brand.website,
+      is_featured: brand.is_featured,
+      logo: brand.logo,
+      order: brand.order,
     });
 
     setIsEdit(true);
@@ -456,21 +421,21 @@ const ListCategories = (props) => {
   //delete customer
   const [deleteModal, setDeleteModal] = useState(false);
 
-  const onClickDelete = (category) => {
-    setCategory(category);
+  const onClickDelete = (brand) => {
+    setBrand(brand);
     setDeleteModal(true);
   };
 
-  const handleDeleteCategory = () => {
-    dispatch(onDeleteCategory(category));
+  const handleDeleteBrand = () => {
+    dispatch(onDeleteBrand(brand));
     onPaginationPageChange(1);
     setDeleteModal(false);
     setIsloading(true);
-    deleteCategoryApi(category);
+    deleteBrandApi(brand);
   };
 
-  const handleCategoryClicks = () => {
-    setCategory("");
+  const handleBrandClicks = () => {
+    setBrand("");
     setIsEdit(false);
     toggle();
   };
@@ -482,7 +447,7 @@ const ListCategories = (props) => {
       <LoadingSpinner isloading={isloading} />
       <DeleteModal
         show={deleteModal}
-        onDeleteClick={handleDeleteCategory}
+        onDeleteClick={handleDeleteBrand}
         onCloseClick={() => setDeleteModal(false)}
       />
       <div className="page-content">
@@ -491,14 +456,15 @@ const ListCategories = (props) => {
 
           <Breadcrumbs
             title="Ecommerce"
-            breadcrumbItem="Liste des catégories"
+            breadcrumbItem="Liste des marques"
           />
 
             {error.message ? <Alert color="danger">{error.message} :
                 <ul>
-                {error.key.map((item) =>{
-                  return <li> { item } </li>
-                })} 
+                {error.key.map(  (item, key) =>  
+
+                  <li key={key}> {item['key'][0]}   </li>    )}
+                 
                 </ul>
 
             </Alert> : null}
@@ -508,10 +474,10 @@ const ListCategories = (props) => {
                 <CardBody>
                   <TableContainer
                     columns={columns}
-                    data={categoryList}
+                    data={brands}
                     isGlobalFilter={true}
                     isAddList={true}
-                    handleAddNewClick={handleCategoryClicks}
+                    handleAddNewClick={handleBrandClicks}
                     customPageSize={10}
                     className="custom-header-css"
                   />
@@ -578,39 +544,7 @@ const ListCategories = (props) => {
                                 </FormFeedback>
                               ) : null}
                             </div> 
-                            
-                            <div className="mb-3">
-                              <Label className="form-label">Parent</Label>
-                              <Input
-                                name="parent_id"
-                                type="select"
-                                onChange={validation.handleChange}
-                                onBlur={validation.handleBlur}
-                                value={validation.values.parent_id || ""}
-                                invalid={
-                                  validation.touched.parent_id &&
-                                  validation.errors.parent_id
-                                    ? true
-                                    : false
-                                }
-                              >
-                                <option value="0">--Selectionner--</option>
-                                {categories &&
-                                  categories.map((cat) => (
-                                    <option { ...cat.id === values.parent_id ? 'selected' : ""}  key={cat.id} value={cat.id}>
-                                      {cat.name}
-                                    </option>
-                                  ))}
-                              </Input>
-
-                              {validation.touched.parent_id &&
-                              validation.errors.parent_id ? (
-                                <FormFeedback type="invalid">
-                                  {validation.errors.parent_id}
-                                </FormFeedback>
-                              ) : null}
-                            </div>
-
+                                              
                             <div className="mb-3">
                               <Label className="form-label">Status</Label>
                               <Input
@@ -638,59 +572,7 @@ const ListCategories = (props) => {
                                 </FormFeedback>
                               ) : null}
                             </div>
-
-                            <div className="mb-3">
-                              <Label className="form-label">Ordre</Label>
-                              <Input
-                                name="order"
-                                type="text"
-                                onChange={validation.handleChange}
-                                onBlur={validation.handleBlur}
-                                
-                                value={validation.values.order || ""}
-                                invalid={
-                                  validation.touched.order &&
-                                  validation.errors.order
-                                    ? true
-                                    : false
-                                }
-                              ></Input>
-
-                              {validation.touched.order &&
-                              validation.errors.order ? (
-                                <FormFeedback type="invalid">
-                                  {validation.errors.order}
-                                </FormFeedback>
-                              ) : null}
-                            </div>
                             
-                            <div className="mb-3">
-                              <Label className="form-label">Default</Label>
-                              <Input
-                                name="is_default"
-                                type="select"
-                                onChange={validation.handleChange}
-                                onBlur={validation.handleBlur}
-                                value={validation.values.is_default || ""}
-                                invalid={
-                                  validation.touched.is_default &&
-                                  validation.errors.is_default
-                                    ? true
-                                    : false
-                                }
-                              >
-                                <option value="">--Selectionner--</option>
-                                <option value="1">OUI</option>
-                                <option value="0">NON</option>
-                              </Input>
-
-                              {validation.touched.is_default &&
-                              validation.errors.is_default ? (
-                                <FormFeedback type="invalid">
-                                  {validation.errors.is_default}
-                                </FormFeedback>
-                              ) : null}
-                            </div>
                             
                             <div className="mb-3">
                               <Label className="form-label">Featured</Label>
@@ -720,97 +602,75 @@ const ListCategories = (props) => {
                               ) : null}
                             </div>
 
-
                             <div className="mb-3">
-                              <Label className="form-label">Icon</Label>
+                              <Label className="form-label">Website</Label>
                               <Input
-                                name="icon"
+                                name="website"
                                 type="text"
                                 onChange={validation.handleChange}
                                 onBlur={validation.handleBlur}
-                                value={validation.values.icon || ""}
+                                
+                                value={validation.values.website || ""}
                                 invalid={
-                                  validation.touched.icon &&
-                                  validation.errors.icon
+                                  validation.touched.website &&
+                                  validation.errors.website
                                     ? true
                                     : false
                                 }
                               ></Input>
 
-                              {validation.touched.icon &&
-                              validation.errors.icon ? (
+                              {validation.touched.website &&
+                              validation.errors.website ? (
                                 <FormFeedback type="invalid">
-                                  {validation.errors.icon}
+                                  {validation.errors.website}
                                 </FormFeedback>
                               ) : null}
                             </div>
+                              
+                          
 
                             <div className="mb-3">
-                              <Label className="form-label">Link</Label>
+                              <Label className="form-label">Ordre</Label>
                               <Input
-                                name="link"
+                                name="order"
                                 type="text"
                                 onChange={validation.handleChange}
                                 onBlur={validation.handleBlur}
-                                value={validation.values.link }
+                                value={validation.values.order }
                                 invalid={
-                                  validation.touched.link &&
-                                  validation.errors.link
+                                  validation.touched.order &&
+                                  validation.errors.order
                                     ? true
                                     : false
                                 }
                               />
 
-                              {validation.touched.link &&
-                              validation.errors.link ? (
+                              {validation.touched.order &&
+                              validation.errors.order ? (
                                 <FormFeedback type="invalid">
-                                  {validation.errors.link}
+                                  {validation.errors.order}
                                 </FormFeedback>
                               ) : null}
                             </div>
 
                             <div className="mb-3">
-                              <Label className="form-label">Image</Label>
-                              <Input id="image"
-                                name="image"
+                              <Label className="form-label">Logo</Label>
+                              <Input id="logo"
+                                name="logo"
                                 type="file"
                                 onChange={ imageHandle}
                                 onBlur={validation.handleBlur}
-                                // value={validation.values.image || ""}
+                                // value={validation.values.logo || ""}
                                 invalid={
-                                  validation.touched.image &&
-                                  validation.errors.image
+                                  validation.touched.logo &&
+                                  validation.errors.logo
                                     ? true
                                     : false
                                 }
                               />
                              
                             </div> 
-                            
-                            <div className="mb-3">
-                              <Label className="form-label">Image url</Label>
-                              <Input
-                                name="image_url"
-                                type="text"
-                                onChange={validation.handleChange}
-                                onBlur={validation.handleBlur}
-                                value={validation.values.image_url }
-                                invalid={
-                                  validation.touched.image_url &&
-                                  validation.errors.image_url
-                                    ? true
-                                    : false
-                                }
-                              />
 
-                              {validation.touched.image_url &&
-                              validation.errors.image_url ? (
-                                <FormFeedback type="invalid">
-                                  {validation.errors.image_url}
-                                </FormFeedback>
-                              ) : null}
-                            </div>
-                            
                           </Col>
                         </Row>
                         <Row>
@@ -818,7 +678,7 @@ const ListCategories = (props) => {
                             <div className="text-end">
                               <button
                                 type="submit"
-                                className="btn btn-success save-category"
+                                className="btn btn-success save-brand"
                               >
                                 Enregistrer
                               </button>
@@ -838,4 +698,4 @@ const ListCategories = (props) => {
   );
 };
 
-export default ListCategories;
+export default ListBrands;

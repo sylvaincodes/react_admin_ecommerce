@@ -16,17 +16,19 @@ import {
   Input,
   Form,
   Alert,
+  FormGroup,
+  FormText
 } from "reactstrap";
 import * as Yup from "yup";
 import { useFormik } from "formik";
 import { Name } from "./ListProductsCol";
 import Breadcrumbs from "../../../components/breadcrumbs/Breadcrumb";
 import DeleteModal from "../../../components/modals/DeleteModal";
-import { API_URL, token } from "../../../data";
+import { API_URL, BASE_URL, productsData, token } from "../../../data";
 import {
-  // getProducts as onGetProducts,
-  addNewProduct as onaddNewProduct,
-  updateProduct as onupdateProduct,
+  getProducts as onGetProducts,
+  addNewProduct as onAddNewProduct,
+  updateProduct as onUpdateProduct,
   deleteProduct as onDeleteProduct,
   getProductsSuccess,
   addProductSuccess,
@@ -37,150 +39,175 @@ import {
   deleteProductFail,
 } from "../../../redux/products/actions";
 
-import { isEmpty, values } from "lodash";
+import { values } from "lodash";
 
 //redux
 import { useSelector, useDispatch } from "react-redux";
 import LoadingSpinner from "../../../components/Loading/LoadingSpinner";
-import { getProductsSuccess } from "../../../redux/categories/actions";
+import { errorsInArray, stringToArray } from "../../../helpers/functions";
+import { storage } from "../../../helpers/firebase";
+import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
+import { v4 } from "uuid";
 
 const ListProducts = (props) => {
   //meta title
   // no-dupe-keys
-  document.title = "Liste des produits - Tableau | Admin ";
+  document.title = "Liste des produits | Admin ";
 
   const [isloading, setIsloading] = useState(false);
+  const [images, setImages] = useState({});
+  const [url, setUrl] = useState([]);
+  // const [imagesList, setImageslist] = useState();
   const dispatch = useDispatch();
   const [product, setProduct] = useState();
-  const [image, setImage] = useState({});
-  
+
   const error = useSelector((state) => state.products.error);
 
-  const imageHandle = (e) =>  {
-    const file = e.target
-    setImage(file.files[0]);
-  }
-
-  useEffect(() => {
-    fetch(API_URL + "/categories", {
-      headers: {
-        Authorization: "Bearer " + token,
-      },
-    })
-      .then((response) => response.json())
-      .then((array) => {
-        dispatch(getProductsSuccess(array));
-      });
-  }, []);
-
-  
-  const { products , categories } = useSelector((state) => ({
+  const { products, brands, categories, collections } = useSelector((state) => ({
     products: state.products.products,
+    brands: state.brands.brands,
     categories: state.categories.categories,
+    collections: state.collections.collections,
   }));
 
+  const imageHandle = (e) => {
+    
+    const file = e.target;
+    setImages(file.files);
+    
+    if (images == null) {
+      return;
+    } else { 
+
+      const array = [];
+
+      Object.keys(e.target.files).forEach(key => {
+        let image = e.target.files[key];
+        const imageRef = ref(storage, `media/products/${image.name + v4()}`);
+        uploadBytes(imageRef, image).then((data) => {
+          getDownloadURL(data.ref).then((url) => {
+            setIsloading(true);
+            array.push({ url : url })
+            setIsloading(false);  
+          });
+        });
+        
+      });
+      setUrl(array);
+    }
+  };
+  
   //validation
   const validation = useFormik({
     //enableReinitialize : use this flag when initial values needs to be changed
     enableReinitialize: true,
 
     initialValues: {
-      slide_id: (product && product.slide_id) || "",
-      title: (product && product.title) || "",
-      subtitle: (product && product.subtitle) || "",
+      category_id: (product && product.category_id) || "",
+      collection_id: (product && product.collection_id) || "",
+      name: (product && product.name) || "",
+      brand_id: (product && product.brand_id) || "",
       description: (product && product.description) || "",
-      link: (product && product.link) || "",
-      order: (product && product.order) || "",
-      btn: (product && product.btn) || "",
-      image: (product && product.image) || "",
+      quantity: (product && product.quantity) || "0",
+      content: (product && product.content) || "",
+      status: (product && product.status) || "",
+      images: (product && product.images) || "",
       url: (product && product.url) || "",
     },
     validationSchema: Yup.object({
-      title: Yup.string().required("Entrer le libelle"),
-      subtitle: Yup.string().required("Entrer le sous titre"),
-      slide_id: Yup.string().required("Selectionner le product parent"),
+      name: Yup.string().required("Entrer le libelle"),
+      brand_id: Yup.string().required("Entrer le sous titre"),
+      category_id: Yup.string().required("Selectionner la catégorie"),
+      collection_id: Yup.string().required("Selectionner la collection"),
+      status: Yup.string().required("Selectionner le status"),
       description: Yup.string().required("Entrer la description"),
     }),
     onSubmit: (values) => {
       if (isEdit) {
         const updateProduct = {
           id: product.id,
-          slide_id: values.slide_id,
-          title: values.title,
-          subtitle: values.subtitle,
+          category_id: values.category_id,
+          collection_id: values.collection_id,
+          name: values.name,
+          brand_id: values.brand_id,
           description: values.description,
-          link: values.link,
-          order: values.order,         
-          btn: values.btn,
-          image: image,
-          url: values.url,
+          quantity: values.quantity,
+          content: values.content,
+          status: values.status,
+          images: images,
+          url: url.length==0 ? values.url : url ,
         };
 
         //update product
-        dispatch(onupdateProduct(updateProduct));
+          // console.log(updateProduct);
+          // return false;
+
+        dispatch(onUpdateProduct(updateProduct));
         validation.resetForm();
         setIsEdit(false);
         setIsloading(true);
         editProductApi(
-          updateProduct.slide_id,
-          updateProduct.title,
-          updateProduct.subtitle,
+          updateProduct.category_id,
+          updateProduct.collection_id,
+          updateProduct.name,
+          updateProduct.brand_id,
           updateProduct.description,
-          updateProduct.link,
-          updateProduct.btn,
-          updateProduct.order,
-          updateProduct.image,
+          updateProduct.quantity,
+          updateProduct.status,
+          updateProduct.content,
+          updateProduct.images,
           updateProduct.url
         );
       } else {
         const newProduct = {
           id: Math.floor(Math.random() * (30 - 20)) + 20,
-          slide_id: values["slide_id"],
-          title: values["title"],
-          subtitle: values['subtitle'],  
+          category_id: values["category_id"],
+          collection_id: values["collection_id"],
+          name: values["name"],
+          brand_id: values["brand_id"],
           description: values["description"],
-          link: values['link'],
-          btn: values["btn"],
-          order: values['order'],  
-          image: image,
-          url: values['url'],
+          quantity: values["quantity"],
+          status: values["status"],
+          content: values["content"],
+          images: images,
+          url: url,
         };
 
-        //save new product
-
+        // save new product
         // console.log(newProduct);
         // return false;
 
         setIsloading(true);
-        dispatch(onaddNewProduct(newProduct));
+        dispatch(onAddNewProduct(newProduct));
         addProductApi(
-          newProduct.slide_id,
-          newProduct.title,
-          newProduct.subtitle,
+          newProduct.category_id,
+          newProduct.collection_id,
+          newProduct.name,
+          newProduct.brand_id,
           newProduct.description,
-          newProduct.link,
-          newProduct.btn,
-          newProduct.order,
-          newProduct.image,
-          newProduct.url,
+          newProduct.quantity,
+          newProduct.status,
+          newProduct.content,
+          newProduct.images,
+          newProduct.url
         );
-        validation.resetForm(); 
+        validation.resetForm();
       }
       toggle();
     },
   });
 
-  
   const addProductApi = async (
-    slide_id,
-    title,
-    subtitle,
+    category_id,
+    collection_id,
+    name,
+    brand_id,
     description,
-    link,
-    order,
-    btn,
-    image,
-    url,
+    quantity,
+    status,
+    content,
+    images,
+    url
   ) => {
     await fetch(API_URL + "/products", {
       method: "POST",
@@ -189,25 +216,27 @@ const ListProducts = (props) => {
         "Content-type": "application/json",
       },
       body: JSON.stringify({
-        slide_id: slide_id,
-        title: title,
-        subtitle: subtitle,
+        category_id: category_id,
+        name: name,
+        brand_id: brand_id,
         description: description,
-        link: link,
-        order: order,
-        btn: btn,
+        quantity: quantity,
+        status: status,
+        content: content,
+        images: images,
         url: url,
-        image: image,
       }),
     })
       .then((response) => response.json())
       .then((data) => {
         setIsloading(false);
-        console.log(data);
-        if (data.status === 201) {
+        if (data.status == 201) {
           dispatch(addProductSuccess(data.product));
+          setUrl("");
         } else {
-          dispatch(addProductFail({ message: data.message ,  key : data.errors.key }));
+          dispatch(
+            addProductFail({ message: data.message, key: errorsInArray(data) })
+          );
         }
       })
       .catch((e) => {
@@ -226,21 +255,21 @@ const ListProducts = (props) => {
       const data = response.json();
       setIsloading(false);
       dispatch(deleteProductSuccess(product));
-      dispatch(deleteProductFail({ message: data.message , key : data.errors.key  }));
+      setUrl("");
     });
   };
 
   const editProductApi = async (
-    slide_id,
-    title,
-    subtitle,
+    category_id,
+    collection_id,
+    name,
+    brand_id,
     description,
-    link,
-    btn,
-    order,
-    image,
-    url,
-
+    quantity,
+    status,
+    content,
+    images,
+    url
   ) => {
     await fetch(API_URL + "/products/" + product.id, {
       method: "PUT",
@@ -248,27 +277,29 @@ const ListProducts = (props) => {
         Authorization: "Bearer " + token,
         "Content-type": "application/json",
       },
-       body:
-      JSON.stringify({
-        slide_id: slide_id,
-        title: title,
-        subtitle: subtitle,
+      body: JSON.stringify({
+        category_id: category_id,
+        collection_id: collection_id,
+        name: name,
+        brand_id: brand_id,
         description: description,
-        link: link,
-        order: order,
-        btn: btn,
-        image: image,
+        quantity: quantity,
+        content: content,
+        status: status,
+        images: images,
         url: url,
-      }),      
+      }),
     })
       .then((response) => response.json())
       .then((data) => {
         setIsloading(false);
         if (data.status === 200) {
           dispatch(updateProductSuccess(data.product));
+          setUrl("");
         } else {
-          console.log(data.errors);
-          dispatch(updateProductFail({ message: data.message ,key : data.errors.key }));
+          dispatch(
+            updateProductFail({ message: data.message, key: data.errors.key })
+          );
         }
       })
       .catch((e) => {
@@ -276,7 +307,7 @@ const ListProducts = (props) => {
       });
   };
 
-  const [productsList, setProductList] = useState([]);
+  const [productList, setProductList] = useState([]);
   const [modal, setModal] = useState(false);
   const [isEdit, setIsEdit] = useState(false);
 
@@ -288,7 +319,7 @@ const ListProducts = (props) => {
     })
       .then((response) => response.json())
       .then((array) => {
-        setProductList(array);
+        setProductList(array.data);
         dispatch(getProductsSuccess(array));
       });
   }, []);
@@ -301,27 +332,51 @@ const ListProducts = (props) => {
           return <input type="checkbox" />;
         },
       },
-      
+
       {
-        Header: "Libellé",
-        accessor: "title",
+        Header: "Thumball",
+        accessor: "image",
+        disableFilters: true,
+        filterable: false,
+
+        accessor: (cellProps) => (
+          <>
+            {!cellProps.url ? (
+              <div className="avatar-xs">
+                <span className="avatar-title rounded-circle">
+                  {cellProps.name.charAt(0)}
+                </span>
+              </div>
+            ) : (
+              <div>
+                <img
+                  className="rounded-circle avatar-xs"
+                  src={ cellProps.url ? cellProps.url :  BASE_URL+'media/products/'+cellProps.image}
+                  alt=""
+                />
+              </div>
+            )}
+          </>
+        ),
+      },
+      {
+        Header: "Produit",
+        accessor: "name",
         filterable: true,
         Cell: (cellProps) => {
           return <Name {...cellProps} />;
         },
-      }, 
-      
-      
+      },
+
       {
-        Header: "Slide",
-        accessor: "slide_name",
+        Header: "Catégorie",
+        accessor: "category",
         filterable: true,
         Cell: (cellProps) => {
           return <Name {...cellProps} />;
         },
-      }, 
-      
-      
+      },
+
       {
         Header: "Description",
         accessor: "description",
@@ -340,8 +395,8 @@ const ListProducts = (props) => {
                 to="#"
                 className="text-success"
                 onClick={() => {
-                  const categoryData = cellProps.row.original;
-                  handleProductClick(categoryData);
+                  const data = cellProps.row.original;
+                  handleProductClick(data);
                 }}
               >
                 <i className="mdi mdi-pencil font-size-18" id="edittooltip" />
@@ -353,8 +408,8 @@ const ListProducts = (props) => {
                 to="#"
                 className="text-danger"
                 onClick={() => {
-                  const categoryData = cellProps.row.original;
-                  onClickDelete(categoryData);
+                  const data = cellProps.row.original;
+                  onClickDelete(data);
                 }}
               >
                 <i className="mdi mdi-delete font-size-18" id="deletetooltip" />
@@ -371,22 +426,7 @@ const ListProducts = (props) => {
   );
 
   useEffect(() => {
-    if (products && !products.length) {
-      dispatch(getProductsSuccess(products));
-      setIsEdit(false);
-    }
-  }, [dispatch, products]);
-
-  useEffect(() => {
     setProductList(products);
-    setIsEdit(false);
-  }, [products]);
-
-  useEffect(() => {
-    if (!isEmpty(products) && !!isEdit) {
-      setProductList(products);
-      setIsEdit(false);
-    }
   }, [products]);
 
   const toggle = () => {
@@ -398,14 +438,15 @@ const ListProducts = (props) => {
 
     setProduct({
       id: product.id,
-      title: product.title,
-      subtitle: product.subtitle,
+      name: product.name,
+      brand_id: product.brand_id,
       description: product.description,
-      slide_id: product.slide_id,
-      btn: product.btn,
-      link: product.link,
-      order: product.order,
-      image: product.image,
+      category_id: product.category_id,
+      collection_id: product.collection_id,
+      status: product.status,
+      quantity: product.quantity,
+      content: product.content,
+      images: product.images,
       url: product.url,
     });
 
@@ -449,7 +490,7 @@ const ListProducts = (props) => {
     toggle();
   };
 
-  // const keyField = "id";
+  //const keyField = "id";
 
   return (
     <React.Fragment>
@@ -463,19 +504,19 @@ const ListProducts = (props) => {
         <Container fluid>
           {/* Render Breadcrumbs */}
 
-          <Breadcrumbs
-            title="Paramètres"
-            breadcrumbItem="Liste des produits items"
-          />
+          <Breadcrumbs title="Ecommerce" breadcrumbItem="Liste des produits" />
 
-          {error.message ? <Alert color="danger">{error.message} :
-                <ul>
-                {error.key && error.key.map((item) =>{
-                  return <li> { item } </li>
-                })} 
-                </ul>
+          {error && error.message ? (
+            <Alert color="danger">
+              {error.message} :
+              {/* <ul>
+                {error.key.map(  (item, key) =>  
 
-            </Alert> : null}
+                  <li key={key}> {item['key'][0]}   </li>    )}
+                 
+                </ul> */}
+            </Alert>
+          ) : null}
 
           <Row>
             <Col lg="12">
@@ -483,7 +524,7 @@ const ListProducts = (props) => {
                 <CardBody>
                   <TableContainer
                     columns={columns}
-                    data={products}
+                    data={productList}
                     isGlobalFilter={true}
                     isAddList={true}
                     handleAddNewClick={handleProductClicks}
@@ -499,7 +540,8 @@ const ListProducts = (props) => {
                         : "Formulaire de création"}
                     </ModalHeader>
                     <ModalBody>
-                      <Form encType="multipart/form-data"
+                      <Form
+                        encType="multipart/form-data"
                         onSubmit={(e) => {
                           e.preventDefault();
                           validation.handleSubmit();
@@ -508,49 +550,143 @@ const ListProducts = (props) => {
                       >
                         <Row form="true">
                           <Col xs={12}>
+
+                            <LoadingSpinner isloading={isloading} />
+
+
                             <div className="mb-3">
-                              <Label className="form-label">Titre</Label>
+                              <Label className="form-label">Nom</Label>
                               <Input
-                                name="title"
+                                name="name"
                                 type="text"
                                 onChange={validation.handleChange}
                                 onBlur={validation.handleBlur}
-                                value={validation.values.title || ""}
+                                value={validation.values.name || ""}
                                 invalid={
-                                  validation.touched.title &&
-                                  validation.errors.title
+                                  validation.touched.name &&
+                                  validation.errors.name
                                     ? true
                                     : false
                                 }
                               />
-                              {validation.touched.title &&
-                              validation.errors.title ? (
+                              {validation.touched.name &&
+                              validation.errors.name ? (
                                 <FormFeedback type="invalid">
-                                  {validation.errors.title}
+                                  {validation.errors.name}
+                                </FormFeedback>
+                              ) : null}
+                            </div>
+
+                            <div className="mb-3">
+                              <Label className="form-label">Marques</Label>
+                              <Input
+                                name="brand_id"
+                                type="select"
+                                onChange={validation.handleChange}
+                                onBlur={validation.handleBlur}
+                                value={validation.values.brand_id || ""}
+                                invalid={
+                                  validation.touched.brand_id &&
+                                  validation.errors.brand_id
+                                    ? true
+                                    : false
+                                }
+                              >
+                                <option value="0">--Selectionner--</option>
+                                {brands &&
+                                  brands.map((item) => (
+                                    <option
+                                      {...(item.id === values.brand_id
+                                        ? "selected"
+                                        : "")}
+                                      key={item.id}
+                                      value={item.id}
+                                    >
+                                      {item.name}
+                                    </option>
+                                  ))}
+                              </Input>
+
+                              {validation.touched.brand_id &&
+                              validation.errors.brand_id ? (
+                                <FormFeedback type="invalid">
+                                  {validation.errors.brand_id}
+                                </FormFeedback>
+                              ) : null}
+                            </div>
+
+                            <div className="mb-3">
+                              <Label className="form-label">Catégories</Label>
+                              <Input
+                                name="category_id"
+                                type="select"
+                                onChange={validation.handleChange}
+                                onBlur={validation.handleBlur}
+                                value={validation.values.category_id || ""}
+                                invalid={
+                                  validation.touched.category_id &&
+                                  validation.errors.category_id
+                                    ? true
+                                    : false
+                                }
+                              >
+                                <option value="0">--Selectionner--</option>
+                                {categories &&
+                                  categories.map((item) => (
+                                    <option
+                                      {...(item.id === values.category_id
+                                        ? "selected"
+                                        : "")}
+                                      key={item.id}
+                                      value={item.id}
+                                    >
+                                      {item.name}
+                                    </option>
+                                  ))}
+                              </Input>
+
+                              {validation.touched.category_id &&
+                              validation.errors.category_id ? (
+                                <FormFeedback type="invalid">
+                                  {validation.errors.category_id}
                                 </FormFeedback>
                               ) : null}
                             </div>
                             
-                            
                             <div className="mb-3">
-                              <Label className="form-label">Sous titre</Label>
+                              <Label className="form-label">Collections</Label>
                               <Input
-                                name="subtitle"
-                                type="text"
+                                name="collection_id"
+                                type="select"
                                 onChange={validation.handleChange}
                                 onBlur={validation.handleBlur}
-                                value={validation.values.subtitle || ""}
+                                value={validation.values.collection_id || ""}
                                 invalid={
-                                  validation.touched.subtitle &&
-                                  validation.errors.subtitle
+                                  validation.touched.collection_id &&
+                                  validation.errors.collection_id
                                     ? true
                                     : false
                                 }
-                              />
-                              {validation.touched.subtitle &&
-                              validation.errors.subtitle ? (
+                              >
+                                <option value="0">--Selectionner--</option>
+                                {collections &&
+                                  collections.map((item) => (
+                                    <option
+                                      {...(item.id === values.collection_id
+                                        ? "selected"
+                                        : "")}
+                                      key={item.id}
+                                      value={item.id}
+                                    >
+                                      {item.name}
+                                    </option>
+                                  ))}
+                              </Input>
+
+                              {validation.touched.category_id &&
+                              validation.errors.category_id ? (
                                 <FormFeedback type="invalid">
-                                  {validation.errors.subtitle}
+                                  {validation.errors.category_id}
                                 </FormFeedback>
                               ) : null}
                             </div>
@@ -559,7 +695,7 @@ const ListProducts = (props) => {
                               <Label className="form-label">Description</Label>
                               <Input
                                 name="description"
-                                type="text"
+                                type="textarea"
                                 onChange={validation.handleChange}
                                 onBlur={validation.handleBlur}
                                 value={validation.values.description || ""}
@@ -576,135 +712,143 @@ const ListProducts = (props) => {
                                   {validation.errors.description}
                                 </FormFeedback>
                               ) : null}
-                            </div> 
-                            
-                            
-                            <div className="mb-3">
-                              <Label className="form-label">Link</Label>
-                              <Input
-                                name="link"
-                                type="text"
-                                onChange={validation.handleChange}
-                                onBlur={validation.handleBlur}
-                                value={validation.values.link || ""}
-                                invalid={
-                                  validation.touched.link &&
-                                  validation.errors.link
-                                    ? true
-                                    : false
-                                }
-                              />
-                              {validation.touched.link &&
-                              validation.errors.link ? (
-                                <FormFeedback type="invalid">
-                                  {validation.errors.link}
-                                </FormFeedback>
-                              ) : null}
-                            </div>
-                            
-                            
-                            <div className="mb-3">
-                              <Label className="form-label">Button text</Label>
-                              <Input
-                                name="btn"
-                                type="text"
-                                onChange={validation.handleChange}
-                                onBlur={validation.handleBlur}
-                                value={validation.values.btn || ""}
-                                invalid={
-                                  validation.touched.btn &&
-                                  validation.errors.btn
-                                    ? true
-                                    : false
-                                }
-                              />
-                              {validation.touched.btn &&
-                              validation.errors.btn ? (
-                                <FormFeedback type="invalid">
-                                  {validation.errors.btn}
-                                </FormFeedback>
-                              ) : null}
                             </div>
 
                             <div className="mb-3">
-                              <Label className="form-label">Ordre</Label>
+                              <Label className="form-label">Quantité</Label>
                               <Input
-                                name="order"
-                                type="text"
+                                name="quantity"
+                                type="number"
                                 onChange={validation.handleChange}
                                 onBlur={validation.handleBlur}
-                                
-                                value={validation.values.order || ""}
+                                value={validation.values.quantity || ""}
                                 invalid={
-                                  validation.touched.order &&
-                                  validation.errors.order
+                                  validation.touched.quantity &&
+                                  validation.errors.quantity
                                     ? true
                                     : false
                                 }
                               ></Input>
 
-                              {validation.touched.order &&
-                              validation.errors.order ? (
+                              {validation.touched.quantity &&
+                              validation.errors.quantity ? (
                                 <FormFeedback type="invalid">
-                                  {validation.errors.order}
+                                  {validation.errors.quantity}
                                 </FormFeedback>
                               ) : null}
                             </div>
-                            
 
                             <div className="mb-3">
-                              <Label className="form-label">Slide</Label>
+                              <Label className="form-label">Contenu</Label>
                               <Input
-                                name="slide_id"
+                                name="content"
+                                type="textarea"
+                                onChange={validation.handleChange}
+                                onBlur={validation.handleBlur}
+                                value={validation.values.content || ""}
+                                invalid={
+                                  validation.touched.content &&
+                                  validation.errors.content
+                                    ? true
+                                    : false
+                                }
+                              ></Input>
+
+                              {validation.touched.content &&
+                              validation.errors.content ? (
+                                <FormFeedback type="invalid">
+                                  {validation.errors.content}
+                                </FormFeedback>
+                              ) : null}
+                            </div>
+
+                            <div className="mb-3">
+                              <Label className="form-label">Status</Label>
+                              <Input
+                                name="status"
                                 type="select"
                                 onChange={validation.handleChange}
                                 onBlur={validation.handleBlur}
-                                value={validation.values.slide_id || ""}
+                                value={validation.values.status || ""}
                                 invalid={
-                                  validation.touched.slide_id &&
-                                  validation.errors.slide_id
+                                  validation.touched.status &&
+                                  validation.errors.status
                                     ? true
                                     : false
                                 }
                               >
-                                 <option value="0">--Selectionner--</option>
-                                {categories &&
-                                  categories.map((item) => (
-                                    <option { ...item.id === values.slide_id ? 'selected' : ""}  key={item.id} value={item.id}>
-                                      {item.name}
-                                    </option>
-                                  ))}
+                                <option value="">--Selectionner--</option>
+                                <option value="published">Publié</option>
+                                <option value="draft">Brouillon</option>
                               </Input>
 
-                              {validation.touched.slide_id &&
-                              validation.errors.slide_id ? (
+                              {validation.touched.status &&
+                              validation.errors.status ? (
                                 <FormFeedback type="invalid">
-                                  {validation.errors.slide_id}
+                                  {validation.errors.status}
                                 </FormFeedback>
                               ) : null}
                             </div>
 
-                            <div className="mb-3">
+                            <FormGroup className="mb-3">
                               <Label className="form-label">Image</Label>
-                              <Input id="image"
-                                name="image"
+                              <Input
+                                id="images"
+                                name="images[]"
                                 type="file"
-                                onChange={ imageHandle}
+                                multiple
+                                onChange={imageHandle}
                                 onBlur={validation.handleBlur}
-                                // value={validation.values.image || ""}
+                                // value={validation.values.images || ""}
                                 invalid={
-                                  validation.touched.image &&
-                                  validation.errors.image
+                                  validation.touched.images &&
+                                  validation.errors.images
                                     ? true
                                     : false
                                 }
                               />
+                              <FormText>
+                                Pour ajouter ou supprimer # Retélecharger de nouveau #</FormText>
+                            </FormGroup>
+
+                            
+                            <div className="mb-3">
+                              <Label className="form-label">Prévisionnez</Label>
+                              <div className="d-flex flex-wrap w-auto gap-3">
+                              {
+ 
+                                url && url.map( (item,key)=> (                                 
+                                  <img height={200} key={key} width={200} src={item.url} alt="" />
+                                  ) )
+                                }
+                              </div>
+                            </div>
+                            
+                            
+                            <div className="mb-3">
+                              <Label className="form-label">Images par défault</Label>
+                              <div className="d-flex flex-wrap w-auto gap-3">
+                              {
                              
+                             validation.values.url ? 
+                              stringToArray(validation.values.url).map((url_, key) => (
+                                <img key={key} className="img-thumbnail" width={200} src={url_} alt="" />
+                              ))
+
+                              :
+
+                              "Aucun"
+
+                      
+                                }
+                              </div>
                             </div>
 
                             <div className="mb-3">
-                              <Label className="form-label">Image url</Label>
+                              <Label className="form-label">Url</Label>
                               <Input
+                              placeholder="A ne pas renseigner"
+                                readOnly
                                 name="url"
                                 type="text"
                                 onChange={validation.handleChange}
@@ -728,6 +872,7 @@ const ListProducts = (props) => {
 
                           </Col>
                         </Row>
+
                         <Row>
                           <Col>
                             <div className="text-end">

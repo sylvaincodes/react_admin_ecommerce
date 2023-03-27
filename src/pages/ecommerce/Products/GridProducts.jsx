@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import PropTypes from "prop-types";
-import { Link, withRouter } from "react-router-dom";
+import { Link, Navigate, useNavigate, withRouter } from "react-router-dom";
 import {
   Card,
   CardBody,
@@ -49,13 +49,14 @@ import { useSelector, useDispatch } from "react-redux";
 import { getProductOffer } from "../../../helpers/functions";
 import { getCategoriesSuccess } from "../../../redux/categories/actions";
 
-const Products = props => {
+const GridProducts = props => {
 
   
   //meta title
-  document.title="Products | Ecommerce";
+  document.title="GridProducts | Ecommerce";
 
   const dispatch = useDispatch()
+  const navigate = useNavigate()
 
   const { products,categories } = useSelector(state => ({
     products: state.products,
@@ -240,7 +241,7 @@ const Products = props => {
     <React.Fragment>
       <div className="page-content">
         <Container fluid>
-          <Breadcrumbs title="Ecommerce" breadcrumbItem="Products" />
+          <Breadcrumbs title="Ecommerce" breadcrumbItem="Grid Products" />
           <Row>
             <Col lg="3">
               <Card>
@@ -411,20 +412,25 @@ const Products = props => {
                           className={classnames({
                             active: activeTab === "1",
                           })}
-                          onClick={() => {
-                            toggleTab("1");
-                          }}
+                          onClick={() =>
+                            navigate(
+                              `/ecommerce/produits/grid`
+                            )
+                          }
                         >
                           <i className="fa fa-bars"></i>
                         </NavLink>
                       </NavItem>
                       <NavItem>
-                        <NavLink
+                        <NavLink 
                           className={classnames({
                             active: activeTab === "2",
                           })}
                           onClick={() => {
                             toggleTab("2");
+                            navigate(
+                              `/ecommerce/produits/table`
+                            );
                           }}
                         >
                           <i className="fa fa-list" />
@@ -438,7 +444,7 @@ const Products = props => {
                 {!isEmpty(productList) &&
                   productList.map((product, key) => (
                     <Col xl="4" sm="6" key={"_col_" + key}>
-                      <Card
+                      <Card key={key}
                         onClick={() =>
                           history.push(
                             `/ecommerce-product-detail/${product.id}`
@@ -466,6 +472,7 @@ const Products = props => {
                               alt=""
                               className="img-fluid mx-auto d-block"
                             />
+
                           </div>
                           <div className="mt-4 text-center">
                             <h5 className="mb-3 text-truncate">
@@ -551,10 +558,10 @@ const Products = props => {
   )
 }
 
-Products.propTypes = {
+GridProducts.propTypes = {
   products: PropTypes.array,
   history: PropTypes.object,
   onGetProducts: PropTypes.func,
 }
 
-export default (Products)
+export default (GridProducts)

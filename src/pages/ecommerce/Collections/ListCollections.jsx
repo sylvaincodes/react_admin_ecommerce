@@ -16,148 +16,135 @@ import {
   Input,
   Form,
   Alert,
+  Fade,
 } from "reactstrap";
 import * as Yup from "yup";
 import { useFormik } from "formik";
-import { Name } from "./ListCategoriesCol";
+import { Name } from "./ListCollectionsCol";
 import Breadcrumbs from "../../../components/breadcrumbs/Breadcrumb";
 import DeleteModal from "../../../components/modals/DeleteModal";
 import { API_URL, BASE_URL, token } from "../../../data";
 import {
-  getCategories as onGetCategories,
-  addNewCategory as onAddNewCategory,
-  updateCategory as onUpdateCategory,
-  deleteCategory as onDeleteCategory,
-  getCategoriesSuccess,
-  addCategorySuccess,
-  addCategoryFail,
-  updateCategorySuccess,
-  updateCategoryFail,
-  deleteCategorySuccess,
-  deleteCategoryFail,
-} from "../../../redux/categories/actions";
+  getCollections as onGetCollections,
+  addNewCollection as onAddNewCollection,
+  updateCollection as onUpdateCollection,
+  deleteCollection as onDeleteCollection,
+  getCollectionsSuccess,
+  addCollectionSuccess,
+  addCollectionFail,
+  updateCollectionSuccess,
+  updateCollectionFail,
+  deleteCollectionSuccess,
+  deleteCollectionFail,
+} from "../../../redux/collections/actions";
 
 import { isEmpty, values } from "lodash";
 
 //redux
 import { useSelector, useDispatch } from "react-redux";
 import LoadingSpinner from "../../../components/Loading/LoadingSpinner";
+import { errorsInArray } from "../../../helpers/functions";
 
-const ListCategories = (props) => {
+const ListCollections = (props) => {
   //meta title
   // no-dupe-keys
-  document.title = "Liste des catégories | Admin ";
+  document.title = "Liste des collections | Admin ";
 
   const [isloading, setIsloading] = useState(false);
   const [image, setImage] = useState({});
   const dispatch = useDispatch();
-  const [category, setCategory] = useState();
-  const error = useSelector((state) => state.categories.error);
+  const [collection, setCollection] = useState();
+  const [collectionList, setCollectionList] = useState([]);
+  const [modal, setModal] = useState(false);
+  const [isEdit, setIsEdit] = useState(false);
+  const [slug, setSlug] = useState("");
+  
+  const error = useSelector( state => state.collections.error);
 
-  const { categories } = useSelector((state) => ({
-    categories: state.categories.categories,
+  const { collections } = useSelector((state) => ({
+    collections: state.collections.collections,
   }));
 
   const imageHandle = (e) =>  {
     const file = e.target
     setImage(file.files[0]);
   }
-
+  
   //validation
   const validation = useFormik({
     //enableReinitialize : use this flag when initial values needs to be changed
     enableReinitialize: true,
 
     initialValues: {
-      name: (category && category.name) || "",
-      parent_id: (category && category.parent_id) || "",
-      description: (category && category.description) || "",
-      status: (category && category.status) || "",
-      icon: (category && category.icon) || "",
-      order: (category && category.order) || "",
-      is_featured: (category && category.is_featured) || "",
-      is_default: (category && category.is_default) || "",
-      image: (category && category.image) || {},
-      image_url: (category && category.image_url) || "",
-      link: (category && category.link) || ""
+      name: (collection && collection.name) || "",
+      description: (collection && collection.description) || "",
+      status: (collection && collection.status) || "",
+      slug: (collection && collection.slug) || "",
+      is_featured: (collection && collection.is_featured) || "",
+      image: (collection && collection.image) || {},
+      order: (collection && collection.order) || "0",
     },
     validationSchema: Yup.object({
       name: Yup.string().required("Entrer le libelle"),
       description: Yup.string().required("Entrer la description"),
       status: Yup.string().required("Selectionner le status"),
       is_featured: Yup.string().required("Selectionner"),
-      is_default: Yup.string().required("Selectionner"),
     }),
     onSubmit: (values) => {
       if (isEdit) {
-        const updateCategory = {
-          id: category.id,
+        const updateCollection = {
+          id: collection.id,
           name: values.name,
-          parent_id: values.parent_id,
           description: values.description,
           status: values.status,
-          icon: values.icon,
-          order: values.order,
-          is_featured: values.is_featured,
-          is_default: values.is_default,
+          slug: values.slug,
+          is_featured: values.is_featured ,
           image: image,
-          image_url: values.image_url,
-          link: values.link,
+          order: values.order,
         };
 
-        //update category
-        dispatch(onUpdateCategory(updateCategory));
+        //  console.log(updateCollection);
+        //  return false;
+        
+        //update collection
+        dispatch(onUpdateCollection(updateCollection));
         validation.resetForm();
         setIsEdit(false);
         setIsloading(true);
-        editCategoryApi(
-          updateCategory.name,
-          updateCategory.parent_id,
-          updateCategory.description,
-          updateCategory.status,
-          updateCategory.icon,
-          updateCategory.order,
-          updateCategory.is_featured,
-          updateCategory.is_default,
-          updateCategory.image,
-          updateCategory.image_url,
-          updateCategory.link
+        editCollectionApi(
+          updateCollection.name,
+          updateCollection.description,
+          updateCollection.status,
+          updateCollection.slug,
+          updateCollection.is_featured,
+          updateCollection.image,
+          updateCollection.order,
         );
 
       } else {
-        const newCategory = {
+        const newCollection = {
           id: Math.floor(Math.random() * (30 - 20)) + 20,
           name: values["name"],
-          parent_id: values["parent_id"],
           description: values["description"],
           status: values["status"],
-          icon: values["icon"],
+          slug: values["slug"],
+          is_featured: values.is_featured,
+          image:  image,
           order: values["order"],
-          is_featured: values["is_featured"],
-          is_default: values["is_default"],
-          image: image,
-          image_url: values["image_url"],
-          link: values["link"],
         };
-        // save new category
+        // save new collection
 
-        // console.log(newCategory);
-        // return false;
-
+ 
         setIsloading(true);
-        dispatch(onAddNewCategory(newCategory));
-        addCategoryApi(
-          newCategory.name,
-          newCategory.parent_id,
-          newCategory.description,
-          newCategory.status,
-          newCategory.icon,
-          newCategory.order,
-          newCategory.is_featured,
-          newCategory.is_default,
-          newCategory.image,
-          newCategory.image_url,
-          newCategory.link,
+        dispatch(onAddNewCollection(newCollection));
+        addCollectionApi(
+          newCollection.name,
+          newCollection.description,
+          newCollection.status,
+          newCollection.slug,
+          newCollection.is_featured,
+          newCollection.image,
+          newCollection.order,
         );
         validation.resetForm();
       }
@@ -165,20 +152,16 @@ const ListCategories = (props) => {
     },
   });
 
-  const addCategoryApi = async (
+  const addCollectionApi = async (
     name,
-    parent_id,
     description,
     status,
-    icon,
-    order,
+    slug,
     is_featured,
-    is_default,
     image,
-    image_url,
-    link
+    order,
   ) => {
-    await fetch(API_URL + "/categories", {
+    await fetch(API_URL + "/collections", {
       method: "POST",
       headers: {
         Authorization: "Bearer " + token,
@@ -187,24 +170,22 @@ const ListCategories = (props) => {
       body: JSON.stringify({
         name: name,
         description: description,
-        parent_id: parent_id,
         status: status,
-        icon: icon,
-        order: order,
+        slug: slug,
         is_featured: is_featured,
-        is_default: is_default,
         image: image,
-        image_url: image_url,
-        link: link,
+        order: order,
       }),
     })
       .then((response) => response.json())
       .then((data) => {
         setIsloading(false);
+       
+        console.log(data);
         if (data.status === 201) {
-          dispatch(addCategorySuccess(data.category));
+          dispatch(addCollectionSuccess(data.collection));
         } else {
-          dispatch(addCategoryFail({ message: data.message }));
+          dispatch(addCollectionFail({ message: data.message , key : errorsInArray(data) }));
         }
       })
       .catch((e) => {
@@ -212,8 +193,8 @@ const ListCategories = (props) => {
       });
   };
 
-  const deleteCategoryApi = async (category) => {
-    await fetch(API_URL + "/categories/" + category.id, {
+  const deleteCollectionApi = async (collection) => {
+    await fetch(API_URL + "/collections/" + collection.id, {
       method: "DELETE",
       headers: {
         Authorization: "Bearer " + token,
@@ -221,52 +202,36 @@ const ListCategories = (props) => {
     }).then((response) => {
       const data = response.json();
       setIsloading(false);
-      dispatch(deleteCategorySuccess(category));
-      dispatch(deleteCategoryFail({ message: data.message }));
+      dispatch(deleteCollectionSuccess(collection));
+      dispatch(deleteCollectionFail({ message: data.message }));
     });
   };
 
-  const editCategoryApi = async (
+  const editCollectionApi = async (
     name,
-    parent_id,
     description,
     status,
-    icon,
-    order,
+    slug,
     is_featured,
-    is_default,
     image,
-    image_url,
-    link
+    order,
   ) => {
 
-    // const formData = new FormData();
-    // formData.append("_method","PUT");
-    // formData.append("name",name);
-    // formData.append("description",description);
-    // formData.append("image",image);
-
-    await fetch(API_URL + "/categories/" + category.id, {
+    await fetch(API_URL + "/collections/" + collection.id, {
       method: "PUT",
       headers: {
         Authorization: "Bearer " + token,
         "Content-type": "application/json",
-        // "Content-type": "multipart/form-data",
       },
        body:
-          // formData
       JSON.stringify({
         name: name,
         description: description,
-        parent_id: parent_id,
         status: status,
-        icon: icon,
-        order: order,
+        slug: slug,
         is_featured: is_featured,
-        is_default: is_default,
         image: image,
-        image_url: image_url,
-        link : link
+        order: order,
       }),
       
     })
@@ -275,9 +240,9 @@ const ListCategories = (props) => {
         setIsloading(false);
         console.log(data);
         if (data.status === 200) {
-          dispatch(updateCategorySuccess(data.category));
+          dispatch(updateCollectionSuccess(data.collection));
         } else {
-          dispatch(updateCategoryFail({ message: data.message }));
+          dispatch(updateCollectionFail({ message: data.message }));
         }
       })
       .catch((e) => {
@@ -285,23 +250,20 @@ const ListCategories = (props) => {
       });
   };
 
-  const [categoryList, setCategoryList] = useState([]);
-  const [modal, setModal] = useState(false);
-  const [isEdit, setIsEdit] = useState(false);
-
   useEffect(() => {
-    fetch(API_URL + "/categories", {
+    fetch(API_URL + "/collections", {
       headers: {
         Authorization: "Bearer " + token,
       },
     })
       .then((response) => response.json())
       .then((array) => {
-        setCategoryList(array);
-        dispatch(getCategoriesSuccess(array));
+        setCollectionList(array);
+        console.log(array);
+        dispatch(getCollectionsSuccess(array));
       });
-  }, [dispatch]);
-
+    }, [dispatch]);
+    
 
   const columns = useMemo(
     () => [
@@ -329,7 +291,7 @@ const ListCategories = (props) => {
               <div>
                 <img
                   className="rounded-circle avatar-xs"
-                  src={ cellProps.image_url ? cellProps.image_url :  BASE_URL+'media/categories/'+cellProps.image}
+                  src={ cellProps.url ? cellProps.url :  BASE_URL+'media/collections/'+cellProps.image}
                   alt=""
                 />
               </div>
@@ -364,8 +326,8 @@ const ListCategories = (props) => {
                 to="#"
                 className="text-success"
                 onClick={() => {
-                  const categoryData = cellProps.row.original;
-                  handleCategoryClick(categoryData);
+                  const collectionData = cellProps.row.original;
+                  handleCollectionClick(collectionData);
                 }}
               >
                 <i className="mdi mdi-pencil font-size-18" id="edittooltip" />
@@ -377,8 +339,8 @@ const ListCategories = (props) => {
                 to="#"
                 className="text-danger"
                 onClick={() => {
-                  const categoryData = cellProps.row.original;
-                  onClickDelete(categoryData);
+                  const collectionData = cellProps.row.original;
+                  onClickDelete(collectionData);
                 }}
               >
                 <i className="mdi mdi-delete font-size-18" id="deletetooltip" />
@@ -395,44 +357,40 @@ const ListCategories = (props) => {
   );
 
   useEffect(() => {
-    if (categories) {
-      dispatch(getCategoriesSuccess(categories));
+    if (collections) {
+      dispatch(getCollectionsSuccess(collections));
       setIsEdit(false);
     }
-  }, [dispatch, categories]);
+  }, [dispatch, collections]);
 
   useEffect(() => {
-    setCategoryList(categories);
+    setCollectionList(collections);
     setIsEdit(false);
-  }, [categories]);
+  }, [collections]);
 
   useEffect(() => {
-    if (!isEmpty(categories) && !!isEdit) {
-      setCategoryList(categories);
+    if (!isEmpty(collections) && !!isEdit) {
+      setCollectionList(collections);
       setIsEdit(false);
     }
-  }, [categories]);
+  }, [collections]);
 
   const toggle = () => {
     setModal(!modal);
   };
 
-  const handleCategoryClick = (arg) => {
-    const category = arg;
+  const handleCollectionClick = (arg) => {
+    const collection = arg;
 
-    setCategory({
-      id: category.id,
-      name: category.name,
-      description: category.description,
-      parent_id: category.parent_id,
-      status: category.status,
-      icon: category.icon,
-      order: category.order,
-      is_featured: category.is_featured,
-      is_default: category.is_default,
-      image: category.image,
-      image_url: category.image_url,
-      link: category.link,
+    setCollection({
+      id: collection.id,
+      name: collection.name,
+      description: collection.description,
+      status: collection.status,
+      slug: collection.slug,
+      is_featured: collection.is_featured,
+      image: collection.image,
+      order: collection.order,
     });
 
     setIsEdit(true);
@@ -456,21 +414,21 @@ const ListCategories = (props) => {
   //delete customer
   const [deleteModal, setDeleteModal] = useState(false);
 
-  const onClickDelete = (category) => {
-    setCategory(category);
+  const onClickDelete = (collection) => {
+    setCollection(collection);
     setDeleteModal(true);
   };
 
-  const handleDeleteCategory = () => {
-    dispatch(onDeleteCategory(category));
+  const handleDeleteCollection = () => {
+    dispatch(onDeleteCollection(collection));
     onPaginationPageChange(1);
     setDeleteModal(false);
     setIsloading(true);
-    deleteCategoryApi(category);
+    deleteCollectionApi(collection);
   };
 
-  const handleCategoryClicks = () => {
-    setCategory("");
+  const handleCollectionClicks = () => {
+    setCollection("");
     setIsEdit(false);
     toggle();
   };
@@ -482,7 +440,7 @@ const ListCategories = (props) => {
       <LoadingSpinner isloading={isloading} />
       <DeleteModal
         show={deleteModal}
-        onDeleteClick={handleDeleteCategory}
+        onDeleteClick={handleDeleteCollection}
         onCloseClick={() => setDeleteModal(false)}
       />
       <div className="page-content">
@@ -491,14 +449,15 @@ const ListCategories = (props) => {
 
           <Breadcrumbs
             title="Ecommerce"
-            breadcrumbItem="Liste des catégories"
+            breadcrumbItem="Liste des collections"
           />
 
             {error.message ? <Alert color="danger">{error.message} :
                 <ul>
-                {error.key.map((item) =>{
-                  return <li> { item } </li>
-                })} 
+                {error.key.map(  (item, key) =>  
+
+                  <li key={key}> {item['key'][0]}   </li>    )}
+                 
                 </ul>
 
             </Alert> : null}
@@ -508,10 +467,10 @@ const ListCategories = (props) => {
                 <CardBody>
                   <TableContainer
                     columns={columns}
-                    data={categoryList}
+                    data={collections}
                     isGlobalFilter={true}
                     isAddList={true}
-                    handleAddNewClick={handleCategoryClicks}
+                    handleAddNewClick={handleCollectionClicks}
                     customPageSize={10}
                     className="custom-header-css"
                   />
@@ -538,7 +497,7 @@ const ListCategories = (props) => {
                               <Input
                                 name="name"
                                 type="text"
-                                onChange={validation.handleChange}
+                                onChange={ validation.handleChange}
                                 onBlur={validation.handleBlur}
                                 value={validation.values.name || ""}
                                 invalid={
@@ -578,39 +537,7 @@ const ListCategories = (props) => {
                                 </FormFeedback>
                               ) : null}
                             </div> 
-                            
-                            <div className="mb-3">
-                              <Label className="form-label">Parent</Label>
-                              <Input
-                                name="parent_id"
-                                type="select"
-                                onChange={validation.handleChange}
-                                onBlur={validation.handleBlur}
-                                value={validation.values.parent_id || ""}
-                                invalid={
-                                  validation.touched.parent_id &&
-                                  validation.errors.parent_id
-                                    ? true
-                                    : false
-                                }
-                              >
-                                <option value="0">--Selectionner--</option>
-                                {categories &&
-                                  categories.map((cat) => (
-                                    <option { ...cat.id === values.parent_id ? 'selected' : ""}  key={cat.id} value={cat.id}>
-                                      {cat.name}
-                                    </option>
-                                  ))}
-                              </Input>
-
-                              {validation.touched.parent_id &&
-                              validation.errors.parent_id ? (
-                                <FormFeedback type="invalid">
-                                  {validation.errors.parent_id}
-                                </FormFeedback>
-                              ) : null}
-                            </div>
-
+                                              
                             <div className="mb-3">
                               <Label className="form-label">Status</Label>
                               <Input
@@ -638,59 +565,7 @@ const ListCategories = (props) => {
                                 </FormFeedback>
                               ) : null}
                             </div>
-
-                            <div className="mb-3">
-                              <Label className="form-label">Ordre</Label>
-                              <Input
-                                name="order"
-                                type="text"
-                                onChange={validation.handleChange}
-                                onBlur={validation.handleBlur}
-                                
-                                value={validation.values.order || ""}
-                                invalid={
-                                  validation.touched.order &&
-                                  validation.errors.order
-                                    ? true
-                                    : false
-                                }
-                              ></Input>
-
-                              {validation.touched.order &&
-                              validation.errors.order ? (
-                                <FormFeedback type="invalid">
-                                  {validation.errors.order}
-                                </FormFeedback>
-                              ) : null}
-                            </div>
                             
-                            <div className="mb-3">
-                              <Label className="form-label">Default</Label>
-                              <Input
-                                name="is_default"
-                                type="select"
-                                onChange={validation.handleChange}
-                                onBlur={validation.handleBlur}
-                                value={validation.values.is_default || ""}
-                                invalid={
-                                  validation.touched.is_default &&
-                                  validation.errors.is_default
-                                    ? true
-                                    : false
-                                }
-                              >
-                                <option value="">--Selectionner--</option>
-                                <option value="1">OUI</option>
-                                <option value="0">NON</option>
-                              </Input>
-
-                              {validation.touched.is_default &&
-                              validation.errors.is_default ? (
-                                <FormFeedback type="invalid">
-                                  {validation.errors.is_default}
-                                </FormFeedback>
-                              ) : null}
-                            </div>
                             
                             <div className="mb-3">
                               <Label className="form-label">Featured</Label>
@@ -720,51 +595,54 @@ const ListCategories = (props) => {
                               ) : null}
                             </div>
 
-
                             <div className="mb-3">
-                              <Label className="form-label">Icon</Label>
+                              <Label className="form-label">Slug</Label>
                               <Input
-                                name="icon"
+
+                                name="slug"
                                 type="text"
                                 onChange={validation.handleChange}
                                 onBlur={validation.handleBlur}
-                                value={validation.values.icon || ""}
+                                
+                                value={validation.values.slug ? validation.values.slug : slug}
                                 invalid={
-                                  validation.touched.icon &&
-                                  validation.errors.icon
+                                  validation.touched.slug &&
+                                  validation.errors.slug
                                     ? true
                                     : false
                                 }
                               ></Input>
 
-                              {validation.touched.icon &&
-                              validation.errors.icon ? (
+                              {validation.touched.slug &&
+                              validation.errors.slug ? (
                                 <FormFeedback type="invalid">
-                                  {validation.errors.icon}
+                                  {validation.errors.slug}
                                 </FormFeedback>
                               ) : null}
                             </div>
+                              
+                          
 
                             <div className="mb-3">
-                              <Label className="form-label">Link</Label>
+                              <Label className="form-label">Ordre</Label>
                               <Input
-                                name="link"
+                                name="order"
                                 type="text"
                                 onChange={validation.handleChange}
                                 onBlur={validation.handleBlur}
-                                value={validation.values.link }
+                                value={validation.values.order }
                                 invalid={
-                                  validation.touched.link &&
-                                  validation.errors.link
+                                  validation.touched.order &&
+                                  validation.errors.order
                                     ? true
                                     : false
                                 }
                               />
 
-                              {validation.touched.link &&
-                              validation.errors.link ? (
+                              {validation.touched.order &&
+                              validation.errors.order ? (
                                 <FormFeedback type="invalid">
-                                  {validation.errors.link}
+                                  {validation.errors.order}
                                 </FormFeedback>
                               ) : null}
                             </div>
@@ -786,31 +664,7 @@ const ListCategories = (props) => {
                               />
                              
                             </div> 
-                            
-                            <div className="mb-3">
-                              <Label className="form-label">Image url</Label>
-                              <Input
-                                name="image_url"
-                                type="text"
-                                onChange={validation.handleChange}
-                                onBlur={validation.handleBlur}
-                                value={validation.values.image_url }
-                                invalid={
-                                  validation.touched.image_url &&
-                                  validation.errors.image_url
-                                    ? true
-                                    : false
-                                }
-                              />
 
-                              {validation.touched.image_url &&
-                              validation.errors.image_url ? (
-                                <FormFeedback type="invalid">
-                                  {validation.errors.image_url}
-                                </FormFeedback>
-                              ) : null}
-                            </div>
-                            
                           </Col>
                         </Row>
                         <Row>
@@ -818,7 +672,7 @@ const ListCategories = (props) => {
                             <div className="text-end">
                               <button
                                 type="submit"
-                                className="btn btn-success save-category"
+                                className="btn btn-success save-collection"
                               >
                                 Enregistrer
                               </button>
@@ -838,4 +692,4 @@ const ListCategories = (props) => {
   );
 };
 
-export default ListCategories;
+export default ListCollections;

@@ -19,275 +19,55 @@ import {
 } from "reactstrap";
 import * as Yup from "yup";
 import { useFormik } from "formik";
-import { Name } from "./ListCategoriesCol";
+import { Name } from "./ListProductsCol";
 import Breadcrumbs from "../../../components/breadcrumbs/Breadcrumb";
 import DeleteModal from "../../../components/modals/DeleteModal";
-import { API_URL, BASE_URL, token } from "../../../data";
+import { API_URL, token } from "../../../data";
 import {
-  getCategories as onGetCategories,
-  addNewCategory as onAddNewCategory,
-  updateCategory as onUpdateCategory,
-  deleteCategory as onDeleteCategory,
-  getCategoriesSuccess,
-  addCategorySuccess,
-  addCategoryFail,
-  updateCategorySuccess,
-  updateCategoryFail,
-  deleteCategorySuccess,
-  deleteCategoryFail,
-} from "../../../redux/categories/actions";
+  // getProducts as onGetProducts,
+  addNewProduct as onaddNewProduct,
+  updateProduct as onupdateProduct,
+  deleteProduct as onDeleteProduct,
+  getProductsSuccess,
+  addProductSuccess,
+  addProductFail,
+  updateProductSuccess,
+  updateProductFail,
+  deleteProductSuccess,
+  deleteProductFail,
+} from "../../../redux/products/actions";
 
 import { isEmpty, values } from "lodash";
 
 //redux
 import { useSelector, useDispatch } from "react-redux";
 import LoadingSpinner from "../../../components/Loading/LoadingSpinner";
+import { getCategoriesSuccess } from "../../../redux/categories/actions";
 
-const ListCategories = (props) => {
-  //meta title
+const TableProducts = (props) => {
+  //meta name
   // no-dupe-keys
-  document.title = "Liste des catégories | Admin ";
+  document.name = "Liste des produits - Tableau | Admin ";
 
   const [isloading, setIsloading] = useState(false);
-  const [image, setImage] = useState({});
   const dispatch = useDispatch();
-  const [category, setCategory] = useState();
-  const error = useSelector((state) => state.categories.error);
+  const [product, setProduct] = useState();
+  const [brands, setBrandList] = useState();
+  // const [categories, setBrandList] = useState();
+  const [image, setImage] = useState({});
+  const [deleteModal, setDeleteModal] = useState(false);
 
-  const { categories } = useSelector((state) => ({
-    categories: state.categories.categories,
-  }));
-
+  const error = useSelector((state) => state.products.error);
+  
   const imageHandle = (e) =>  {
     const file = e.target
     setImage(file.files[0]);
   }
 
-  //validation
-  const validation = useFormik({
-    //enableReinitialize : use this flag when initial values needs to be changed
-    enableReinitialize: true,
-
-    initialValues: {
-      name: (category && category.name) || "",
-      parent_id: (category && category.parent_id) || "",
-      description: (category && category.description) || "",
-      status: (category && category.status) || "",
-      icon: (category && category.icon) || "",
-      order: (category && category.order) || "",
-      is_featured: (category && category.is_featured) || "",
-      is_default: (category && category.is_default) || "",
-      image: (category && category.image) || {},
-      image_url: (category && category.image_url) || "",
-      link: (category && category.link) || ""
-    },
-    validationSchema: Yup.object({
-      name: Yup.string().required("Entrer le libelle"),
-      description: Yup.string().required("Entrer la description"),
-      status: Yup.string().required("Selectionner le status"),
-      is_featured: Yup.string().required("Selectionner"),
-      is_default: Yup.string().required("Selectionner"),
-    }),
-    onSubmit: (values) => {
-      if (isEdit) {
-        const updateCategory = {
-          id: category.id,
-          name: values.name,
-          parent_id: values.parent_id,
-          description: values.description,
-          status: values.status,
-          icon: values.icon,
-          order: values.order,
-          is_featured: values.is_featured,
-          is_default: values.is_default,
-          image: image,
-          image_url: values.image_url,
-          link: values.link,
-        };
-
-        //update category
-        dispatch(onUpdateCategory(updateCategory));
-        validation.resetForm();
-        setIsEdit(false);
-        setIsloading(true);
-        editCategoryApi(
-          updateCategory.name,
-          updateCategory.parent_id,
-          updateCategory.description,
-          updateCategory.status,
-          updateCategory.icon,
-          updateCategory.order,
-          updateCategory.is_featured,
-          updateCategory.is_default,
-          updateCategory.image,
-          updateCategory.image_url,
-          updateCategory.link
-        );
-
-      } else {
-        const newCategory = {
-          id: Math.floor(Math.random() * (30 - 20)) + 20,
-          name: values["name"],
-          parent_id: values["parent_id"],
-          description: values["description"],
-          status: values["status"],
-          icon: values["icon"],
-          order: values["order"],
-          is_featured: values["is_featured"],
-          is_default: values["is_default"],
-          image: image,
-          image_url: values["image_url"],
-          link: values["link"],
-        };
-        // save new category
-
-        // console.log(newCategory);
-        // return false;
-
-        setIsloading(true);
-        dispatch(onAddNewCategory(newCategory));
-        addCategoryApi(
-          newCategory.name,
-          newCategory.parent_id,
-          newCategory.description,
-          newCategory.status,
-          newCategory.icon,
-          newCategory.order,
-          newCategory.is_featured,
-          newCategory.is_default,
-          newCategory.image,
-          newCategory.image_url,
-          newCategory.link,
-        );
-        validation.resetForm();
-      }
-      toggle();
-    },
-  });
-
-  const addCategoryApi = async (
-    name,
-    parent_id,
-    description,
-    status,
-    icon,
-    order,
-    is_featured,
-    is_default,
-    image,
-    image_url,
-    link
-  ) => {
-    await fetch(API_URL + "/categories", {
-      method: "POST",
-      headers: {
-        Authorization: "Bearer " + token,
-        "Content-type": "application/json",
-      },
-      body: JSON.stringify({
-        name: name,
-        description: description,
-        parent_id: parent_id,
-        status: status,
-        icon: icon,
-        order: order,
-        is_featured: is_featured,
-        is_default: is_default,
-        image: image,
-        image_url: image_url,
-        link: link,
-      }),
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        setIsloading(false);
-        if (data.status === 201) {
-          dispatch(addCategorySuccess(data.category));
-        } else {
-          dispatch(addCategoryFail({ message: data.message }));
-        }
-      })
-      .catch((e) => {
-        setIsloading(true);
-      });
-  };
-
-  const deleteCategoryApi = async (category) => {
-    await fetch(API_URL + "/categories/" + category.id, {
-      method: "DELETE",
-      headers: {
-        Authorization: "Bearer " + token,
-      },
-    }).then((response) => {
-      const data = response.json();
-      setIsloading(false);
-      dispatch(deleteCategorySuccess(category));
-      dispatch(deleteCategoryFail({ message: data.message }));
-    });
-  };
-
-  const editCategoryApi = async (
-    name,
-    parent_id,
-    description,
-    status,
-    icon,
-    order,
-    is_featured,
-    is_default,
-    image,
-    image_url,
-    link
-  ) => {
-
-    // const formData = new FormData();
-    // formData.append("_method","PUT");
-    // formData.append("name",name);
-    // formData.append("description",description);
-    // formData.append("image",image);
-
-    await fetch(API_URL + "/categories/" + category.id, {
-      method: "PUT",
-      headers: {
-        Authorization: "Bearer " + token,
-        "Content-type": "application/json",
-        // "Content-type": "multipart/form-data",
-      },
-       body:
-          // formData
-      JSON.stringify({
-        name: name,
-        description: description,
-        parent_id: parent_id,
-        status: status,
-        icon: icon,
-        order: order,
-        is_featured: is_featured,
-        is_default: is_default,
-        image: image,
-        image_url: image_url,
-        link : link
-      }),
-      
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        setIsloading(false);
-        console.log(data);
-        if (data.status === 200) {
-          dispatch(updateCategorySuccess(data.category));
-        } else {
-          dispatch(updateCategoryFail({ message: data.message }));
-        }
-      })
-      .catch((e) => {
-        setIsloading(true);
-      });
-  };
-
-  const [categoryList, setCategoryList] = useState([]);
-  const [modal, setModal] = useState(false);
-  const [isEdit, setIsEdit] = useState(false);
+  const { products,categories } = useSelector(state => ({
+    products: state.products,
+    categories: state.categories,
+  }))
 
   useEffect(() => {
     fetch(API_URL + "/categories", {
@@ -297,10 +77,214 @@ const ListCategories = (props) => {
     })
       .then((response) => response.json())
       .then((array) => {
-        setCategoryList(array);
+        // setFilterClothes(array);
+        console.log(array);
         dispatch(getCategoriesSuccess(array));
       });
-  }, [dispatch]);
+  }, []);
+
+ 
+   
+  //validation
+  const validation = useFormik({
+    //enableReinitialize : use this flag when initial values needs to be changed
+    enableReinitialize: true,
+
+    initialValues: {
+      category_id: (product && product.category_id) || "",
+      name: (product && product.name) || "",
+      brand_id: (product && product.brand_id) || "",
+      description: (product && product.description) || "",
+      quantity: (product && product.quantity) || "",
+      content: (product && product.content) || "",
+      status: (product && product.status) || "",
+      image: (product && product.image) || "",
+      url: (product && product.url) || "",
+    },
+    validationSchema: Yup.object({
+      name: Yup.string().required("Entrer le libelle"),
+      brand_id: Yup.string().required("Entrer le sous titre"),
+      category_id: Yup.string().required("Selectionner le product parent"),
+      status: Yup.string().required("Selectionner le status"),
+      description: Yup.string().required("Entrer la description"),
+    }),
+    onSubmit: (values) => {
+      if (isEdit) {
+        const updateProduct = {
+          id: product.id,
+          category_id: values.category_id,
+          name: values.name,
+          brand_id: values.brand_id,
+          description: values.description,
+          quantity: values.quantity,
+          content: values.content,         
+          status: values.status,
+          image: image,
+          url: values.url,
+        };
+
+        //update product
+        dispatch(onupdateProduct(updateProduct));
+        validation.resetForm();
+        setIsEdit(false);
+        setIsloading(true);
+        editProductApi(
+          updateProduct.category_id,
+          updateProduct.name,
+          updateProduct.brand_id,
+          updateProduct.description,
+          updateProduct.quantity,
+          updateProduct.status,
+          updateProduct.content,
+          updateProduct.image,
+          updateProduct.url
+        );
+      } else {
+        const newProduct = {
+          id: Math.floor(Math.random() * (30 - 20)) + 20,
+          category_id: values["category_id"],
+          name: values["name"],
+          brand_id: values['brand_id'],  
+          description: values["description"],
+          quantity: values['quantity'],
+          status: values["status"],
+          content: values['content'],  
+          image: image,
+          url: values['url'],
+        };
+
+        //save new product
+
+        // console.log(newProduct);
+        // return false;
+
+        setIsloading(true);
+        dispatch(onaddNewProduct(newProduct));
+        addProductApi(
+          newProduct.category_id,
+          newProduct.name,
+          newProduct.brand_id,
+          newProduct.description,
+          newProduct.quantity,
+          newProduct.status,
+          newProduct.content,
+          newProduct.image,
+          newProduct.url,
+        );
+        validation.resetForm(); 
+      }
+      toggle();
+    },
+  });
+
+  const addProductApi = async (
+    category_id,
+    name,
+    brand_id,
+    description,
+    quantity,
+    content,
+    status,
+    image,
+    url,
+  ) => {
+    await fetch(API_URL + "/products", {
+      method: "POST",
+      headers: {
+        Authorization: "Bearer " + token,
+        "Content-type": "application/json",
+      },
+      body: JSON.stringify({
+        category_id: category_id,
+        name: name,
+        brand_id: brand_id,
+        description: description,
+        quantity: quantity,
+        content: content,
+        status: status,
+        url: url,
+        image: image,
+      }),
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        setIsloading(false);
+        console.log(data);
+        if (data.status === 201) {
+          dispatch(addProductSuccess(data.product));
+        } else {
+          dispatch(addProductFail({ message: data.message ,  key : data.errors.key }));
+        }
+      })
+      .catch((e) => {
+        setIsloading(true);
+        console.log(e);
+      });
+  };
+
+  const deleteProductApi = async (product) => {
+    await fetch(API_URL + "/products/" + product.id, {
+      method: "DELETE",
+      headers: {
+        Authorization: "Bearer " + token,
+      },
+    }).then((response) => {
+      const data = response.json();
+      setIsloading(false);
+      dispatch(deleteProductSuccess(product));
+      dispatch(deleteProductFail({ message: data.message , key : data.errors.key  }));
+    });
+  };
+
+  const editProductApi = async (
+    category_id,
+    name,
+    brand_id,
+    description,
+    quantity,
+    status,
+    content,
+    image,
+    url,
+
+  ) => {
+    await fetch(API_URL + "/products/" + product.id, {
+      method: "PUT",
+      headers: {
+        Authorization: "Bearer " + token,
+        "Content-type": "application/json",
+      },
+       body:
+      JSON.stringify({
+        category_id: category_id,
+        name: name,
+        brand_id: brand_id,
+        description: description,
+        quantity: quantity,
+        content: content,
+        status: status,
+        image: image,
+        url: url,
+      }),      
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        setIsloading(false);
+        if (data.status === 200) {
+          dispatch(updateProductSuccess(data.product));
+        } else {
+          console.log(data.errors);
+          dispatch(updateProductFail({ message: data.message ,key : data.errors.key }));
+        }
+      })
+      .catch((e) => {
+        setIsloading(true);
+      });
+  };
+
+  const [productsList, setProductList] = useState([]);
+  const [modal, setModal] = useState(false);
+  const [isEdit, setIsEdit] = useState(false);
 
 
   const columns = useMemo(
@@ -311,40 +295,26 @@ const ListCategories = (props) => {
           return <input type="checkbox" />;
         },
       },
+      
       {
-        Header: "Thumball",
-        accessor: "image",
-        disableFilters: true,
-        filterable: false,
-
-        accessor: (cellProps) => (
-          <>
-            {!cellProps.image ? (
-              <div className="avatar-xs">
-                <span className="avatar-title rounded-circle">
-                  {cellProps.name.charAt(0)}
-                </span>
-              </div>
-            ) : (
-              <div>
-                <img
-                  className="rounded-circle avatar-xs"
-                  src={ cellProps.image_url ? cellProps.image_url :  BASE_URL+'media/categories/'+cellProps.image}
-                  alt=""
-                />
-              </div>
-            )}
-          </>
-        ),
-      },
-      {
-        Header: "Libellé",
+        Header: "Produit",
         accessor: "name",
         filterable: true,
         Cell: (cellProps) => {
           return <Name {...cellProps} />;
         },
       }, 
+      
+      
+      {
+        Header: "Catégorie",
+        accessor: "category",
+        filterable: true,
+        Cell: (cellProps) => {
+          return <Name {...cellProps} />;
+        },
+      }, 
+      
       
       {
         Header: "Description",
@@ -365,7 +335,7 @@ const ListCategories = (props) => {
                 className="text-success"
                 onClick={() => {
                   const categoryData = cellProps.row.original;
-                  handleCategoryClick(categoryData);
+                  handleProductClick(categoryData);
                 }}
               >
                 <i className="mdi mdi-pencil font-size-18" id="edittooltip" />
@@ -395,44 +365,42 @@ const ListCategories = (props) => {
   );
 
   useEffect(() => {
-    if (categories) {
-      dispatch(getCategoriesSuccess(categories));
+    if (products && !products.length) {
+      dispatch(getProductsSuccess(products));
       setIsEdit(false);
     }
-  }, [dispatch, categories]);
+  }, [dispatch, products]);
 
   useEffect(() => {
-    setCategoryList(categories);
+    setProductList(products);
     setIsEdit(false);
-  }, [categories]);
+  }, [products]);
 
   useEffect(() => {
-    if (!isEmpty(categories) && !!isEdit) {
-      setCategoryList(categories);
+    if (!isEmpty(products) && !!isEdit) {
+      setProductList(products);
       setIsEdit(false);
     }
-  }, [categories]);
+  }, [products]);
 
   const toggle = () => {
     setModal(!modal);
   };
 
-  const handleCategoryClick = (arg) => {
-    const category = arg;
+  const handleProductClick = (arg) => {
+    const product = arg;
 
-    setCategory({
-      id: category.id,
-      name: category.name,
-      description: category.description,
-      parent_id: category.parent_id,
-      status: category.status,
-      icon: category.icon,
-      order: category.order,
-      is_featured: category.is_featured,
-      is_default: category.is_default,
-      image: category.image,
-      image_url: category.image_url,
-      link: category.link,
+    setProduct({
+      id: product.id,
+      name: product.name,
+      brand_id: product.brand_id,
+      description: product.description,
+      category_id: product.category_id,
+      status: product.status,
+      quantity: product.quantity,
+      content: product.content,
+      image: product.image,
+      url: product.url,
     });
 
     setIsEdit(true);
@@ -453,24 +421,22 @@ const ListCategories = (props) => {
     }
   };
 
-  //delete customer
-  const [deleteModal, setDeleteModal] = useState(false);
 
-  const onClickDelete = (category) => {
-    setCategory(category);
+  const onClickDelete = (product) => {
+    setProduct(product);
     setDeleteModal(true);
   };
 
-  const handleDeleteCategory = () => {
-    dispatch(onDeleteCategory(category));
+  const handleDeleteProduct = () => {
+    dispatch(onDeleteProduct(product));
     onPaginationPageChange(1);
     setDeleteModal(false);
     setIsloading(true);
-    deleteCategoryApi(category);
+    deleteProductApi(product);
   };
 
-  const handleCategoryClicks = () => {
-    setCategory("");
+  const handleProductClicks = () => {
+    setProduct("");
     setIsEdit(false);
     toggle();
   };
@@ -482,7 +448,7 @@ const ListCategories = (props) => {
       <LoadingSpinner isloading={isloading} />
       <DeleteModal
         show={deleteModal}
-        onDeleteClick={handleDeleteCategory}
+        onDeleteClick={handleDeleteProduct}
         onCloseClick={() => setDeleteModal(false)}
       />
       <div className="page-content">
@@ -491,27 +457,29 @@ const ListCategories = (props) => {
 
           <Breadcrumbs
             title="Ecommerce"
-            breadcrumbItem="Liste des catégories"
+            breadcrumbItem="Liste des produits"
           />
-
-            {error.message ? <Alert color="danger">{error.message} :
+          
+          {/* 
+          {error.message ? <Alert color="danger">{error.message} :
                 <ul>
-                {error.key.map((item) =>{
+                {error.key && error.key.map((item) =>{
                   return <li> { item } </li>
                 })} 
                 </ul>
 
-            </Alert> : null}
+            </Alert> : null} */}
+
           <Row>
             <Col lg="12">
               <Card>
                 <CardBody>
                   <TableContainer
                     columns={columns}
-                    data={categoryList}
+                    data={products}
                     isGlobalFilter={true}
                     isAddList={true}
-                    handleAddNewClick={handleCategoryClicks}
+                    handleAddNewClick={handleProductClicks}
                     customPageSize={10}
                     className="custom-header-css"
                   />
@@ -534,7 +502,7 @@ const ListCategories = (props) => {
                         <Row form="true">
                           <Col xs={12}>
                             <div className="mb-3">
-                              <Label className="form-label">Libelle</Label>
+                              <Label className="form-label">Titre</Label>
                               <Input
                                 name="name"
                                 type="text"
@@ -552,6 +520,34 @@ const ListCategories = (props) => {
                               validation.errors.name ? (
                                 <FormFeedback type="invalid">
                                   {validation.errors.name}
+                                </FormFeedback>
+                              ) : null}
+                            </div>
+                            
+                            
+                            <div className="mb-3">
+                              <Label className="form-label">Marques</Label>
+                              <Input
+                                name="brand_id"
+                                type="select"
+                                onChange={validation.handleChange}
+                                onBlur={validation.handleBlur}
+                                value={validation.values.brand_id || ""}
+                                invalid={
+                                  validation.touched.brand_id &&
+                                  validation.errors.brand_id
+                                    ? true
+                                    : false
+                                }
+                              >
+                                <option value="">--Selectionner--</option>
+                                
+                              </Input>
+
+                              {validation.touched.brand_id &&
+                              validation.errors.brand_id ? (
+                                <FormFeedback type="invalid">
+                                  {validation.errors.brand_id}
                                 </FormFeedback>
                               ) : null}
                             </div>
@@ -579,38 +575,31 @@ const ListCategories = (props) => {
                               ) : null}
                             </div> 
                             
+                            
                             <div className="mb-3">
-                              <Label className="form-label">Parent</Label>
+                              <Label className="form-label">Link</Label>
                               <Input
-                                name="parent_id"
-                                type="select"
+                                name="quantity"
+                                type="text"
                                 onChange={validation.handleChange}
                                 onBlur={validation.handleBlur}
-                                value={validation.values.parent_id || ""}
+                                value={validation.values.quantity || ""}
                                 invalid={
-                                  validation.touched.parent_id &&
-                                  validation.errors.parent_id
+                                  validation.touched.quantity &&
+                                  validation.errors.quantity
                                     ? true
                                     : false
                                 }
-                              >
-                                <option value="0">--Selectionner--</option>
-                                {categories &&
-                                  categories.map((cat) => (
-                                    <option { ...cat.id === values.parent_id ? 'selected' : ""}  key={cat.id} value={cat.id}>
-                                      {cat.name}
-                                    </option>
-                                  ))}
-                              </Input>
-
-                              {validation.touched.parent_id &&
-                              validation.errors.parent_id ? (
+                              />
+                              {validation.touched.quantity &&
+                              validation.errors.quantity ? (
                                 <FormFeedback type="invalid">
-                                  {validation.errors.parent_id}
+                                  {validation.errors.quantity}
                                 </FormFeedback>
                               ) : null}
                             </div>
-
+                            
+                            
                             <div className="mb-3">
                               <Label className="form-label">Status</Label>
                               <Input
@@ -626,9 +615,13 @@ const ListCategories = (props) => {
                                     : false
                                 }
                               >
-                                <option value="">--Selectionner--</option>
-                                <option value="published">Publié</option>
-                                <option value="draft">Brouillon</option>
+                                <option value="0">--Selectionner--</option>
+                                {brands &&
+                                  brands.map((item) => (
+                                    <option { ...item.id === values.brand_id ? 'selected' : ""}  key={item.id} value={item.id}>
+                                      {item.name}
+                                    </option>
+                                  ))}
                               </Input>
 
                               {validation.touched.status &&
@@ -642,129 +635,57 @@ const ListCategories = (props) => {
                             <div className="mb-3">
                               <Label className="form-label">Ordre</Label>
                               <Input
-                                name="order"
+                                name="content"
                                 type="text"
                                 onChange={validation.handleChange}
                                 onBlur={validation.handleBlur}
                                 
-                                value={validation.values.order || ""}
+                                value={validation.values.content || ""}
                                 invalid={
-                                  validation.touched.order &&
-                                  validation.errors.order
+                                  validation.touched.content &&
+                                  validation.errors.content
                                     ? true
                                     : false
                                 }
                               ></Input>
 
-                              {validation.touched.order &&
-                              validation.errors.order ? (
+                              {validation.touched.content &&
+                              validation.errors.content ? (
                                 <FormFeedback type="invalid">
-                                  {validation.errors.order}
+                                  {validation.errors.content}
                                 </FormFeedback>
                               ) : null}
                             </div>
                             
+
                             <div className="mb-3">
-                              <Label className="form-label">Default</Label>
+                              <Label className="form-label">Catégorie</Label>
                               <Input
-                                name="is_default"
+                                name="category_id"
                                 type="select"
                                 onChange={validation.handleChange}
                                 onBlur={validation.handleBlur}
-                                value={validation.values.is_default || ""}
+                                value={validation.values.category_id || ""}
                                 invalid={
-                                  validation.touched.is_default &&
-                                  validation.errors.is_default
+                                  validation.touched.category_id &&
+                                  validation.errors.category_id
                                     ? true
                                     : false
                                 }
                               >
-                                <option value="">--Selectionner--</option>
-                                <option value="1">OUI</option>
-                                <option value="0">NON</option>
+                                 <option value="0">--Selectionner--</option>
+                                {categories.categories &&
+                                  categories.categories.map((item) => (
+                                    <option { ...item.id === values.category_id ? 'selected' : ""}  key={item.id} value={item.id}>
+                                      {item.name}
+                                    </option>
+                                  ))}
                               </Input>
 
-                              {validation.touched.is_default &&
-                              validation.errors.is_default ? (
+                              {validation.touched.category_id &&
+                              validation.errors.category_id ? (
                                 <FormFeedback type="invalid">
-                                  {validation.errors.is_default}
-                                </FormFeedback>
-                              ) : null}
-                            </div>
-                            
-                            <div className="mb-3">
-                              <Label className="form-label">Featured</Label>
-                              <Input
-                                name="is_featured"
-                                type="select"
-                                onChange={validation.handleChange}
-                                onBlur={validation.handleBlur}
-                                value={validation.values.is_featured || ""}
-                                invalid={
-                                  validation.touched.is_featured &&
-                                  validation.errors.is_featured
-                                    ? true
-                                    : false
-                                }
-                              >
-                                <option value="">--Selectionner--</option>
-                                <option value="1">OUI</option>
-                                <option value="0">NON</option>
-                              </Input>
-
-                              {validation.touched.is_featured &&
-                              validation.errors.is_featured ? (
-                                <FormFeedback type="invalid">
-                                  {validation.errors.is_featured}
-                                </FormFeedback>
-                              ) : null}
-                            </div>
-
-
-                            <div className="mb-3">
-                              <Label className="form-label">Icon</Label>
-                              <Input
-                                name="icon"
-                                type="text"
-                                onChange={validation.handleChange}
-                                onBlur={validation.handleBlur}
-                                value={validation.values.icon || ""}
-                                invalid={
-                                  validation.touched.icon &&
-                                  validation.errors.icon
-                                    ? true
-                                    : false
-                                }
-                              ></Input>
-
-                              {validation.touched.icon &&
-                              validation.errors.icon ? (
-                                <FormFeedback type="invalid">
-                                  {validation.errors.icon}
-                                </FormFeedback>
-                              ) : null}
-                            </div>
-
-                            <div className="mb-3">
-                              <Label className="form-label">Link</Label>
-                              <Input
-                                name="link"
-                                type="text"
-                                onChange={validation.handleChange}
-                                onBlur={validation.handleBlur}
-                                value={validation.values.link }
-                                invalid={
-                                  validation.touched.link &&
-                                  validation.errors.link
-                                    ? true
-                                    : false
-                                }
-                              />
-
-                              {validation.touched.link &&
-                              validation.errors.link ? (
-                                <FormFeedback type="invalid">
-                                  {validation.errors.link}
+                                  {validation.errors.category_id}
                                 </FormFeedback>
                               ) : null}
                             </div>
@@ -785,32 +706,32 @@ const ListCategories = (props) => {
                                 }
                               />
                              
-                            </div> 
-                            
+                            </div>
+
                             <div className="mb-3">
                               <Label className="form-label">Image url</Label>
                               <Input
-                                name="image_url"
+                                name="url"
                                 type="text"
                                 onChange={validation.handleChange}
                                 onBlur={validation.handleBlur}
-                                value={validation.values.image_url }
+                                value={validation.values.url || ""}
                                 invalid={
-                                  validation.touched.image_url &&
-                                  validation.errors.image_url
+                                  validation.touched.url &&
+                                  validation.errors.url
                                     ? true
                                     : false
                                 }
-                              />
+                              ></Input>
 
-                              {validation.touched.image_url &&
-                              validation.errors.image_url ? (
+                              {validation.touched.url &&
+                              validation.errors.url ? (
                                 <FormFeedback type="invalid">
-                                  {validation.errors.image_url}
+                                  {validation.errors.url}
                                 </FormFeedback>
                               ) : null}
                             </div>
-                            
+
                           </Col>
                         </Row>
                         <Row>
@@ -818,7 +739,7 @@ const ListCategories = (props) => {
                             <div className="text-end">
                               <button
                                 type="submit"
-                                className="btn btn-success save-category"
+                                className="status status-success save-product"
                               >
                                 Enregistrer
                               </button>
@@ -838,4 +759,4 @@ const ListCategories = (props) => {
   );
 };
 
-export default ListCategories;
+export default TableProducts;
