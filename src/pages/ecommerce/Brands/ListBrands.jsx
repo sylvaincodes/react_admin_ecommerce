@@ -17,6 +17,8 @@ import {
   Form,
   Alert,
   Fade,
+  FormText,
+  FormGroup 
 } from "reactstrap";
 import * as Yup from "yup";
 import { useFormik } from "formik";
@@ -44,6 +46,11 @@ import { isEmpty, values } from "lodash";
 import { useSelector, useDispatch } from "react-redux";
 import LoadingSpinner from "../../../components/Loading/LoadingSpinner";
 import { errorsInArray } from "../../../helpers/functions";
+import { storage } from "../../../helpers/firebase";
+import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
+import { v4 } from "uuid";
+import { stringToArray } from "../../../helpers/functions";
+
 
 const ListBrands = (props) => {
   //meta title
@@ -51,13 +58,14 @@ const ListBrands = (props) => {
   document.title = "Liste des catégories | Admin ";
 
   const [isloading, setIsloading] = useState(false);
-  const [logo, setImage] = useState({});
   const dispatch = useDispatch();
   const [brand, setBrand] = useState();
   const [brandList, setBrandList] = useState([]);
   const [modal, setModal] = useState(false);
   const [isEdit, setIsEdit] = useState(false);
-  
+  const [image, setImage] = useState("");
+  const [url, setUrl] = useState("");
+
   const checkboxRef = useRef("");
 
 
@@ -74,10 +82,25 @@ const ListBrands = (props) => {
     brands: state.brands.brands,
   }));
 
-  const imageHandle = (e) =>  {
-    const file = e.target
+  const imageHandle = (e) => {
+    
+    const file = e.target;
     setImage(file.files[0]);
-  }
+    if (file.files[0] == null) {
+      return;
+    } else { 
+
+        const imageRef = ref(storage, `media/brands/${file.files[0].name + v4()}`);
+        uploadBytes(imageRef, file.files[0]).then((data) => {
+          getDownloadURL(data.ref).then((url) => {
+            setIsloading(true);
+            setUrl(url);
+            setIsloading(false);  
+          });
+        }); 
+    }
+  };
+
 
   //validation
   const validation = useFormik({
@@ -90,8 +113,9 @@ const ListBrands = (props) => {
       status: (brand && brand.status) || "",
       website: (brand && brand.website) || "",
       is_featured: (brand && brand.is_featured) || "",
-      logo: (brand && brand.logo) || {},
+      image: (brand && brand.image) || {},
       order: (brand && brand.order) || "",
+      url: (brand && brand.url) || ""
     },
     validationSchema: Yup.object({
       name: Yup.string().required("Entrer le libelle"),
@@ -108,8 +132,9 @@ const ListBrands = (props) => {
           status: values.status,
           website: values.website,
           is_featured: values.is_featured ,
-          logo: logo,
+          image: values.image,
           order: values.order,
+          url: url.trim().length==0 ? values.url : url ,
         };
 
         //  console.log(updateBrand);
@@ -126,8 +151,9 @@ const ListBrands = (props) => {
           updateBrand.status,
           updateBrand.website,
           updateBrand.is_featured,
-          updateBrand.logo,
+          updateBrand.image,
           updateBrand.order,
+          updateBrand.url
         );
 
       } else {
@@ -137,13 +163,17 @@ const ListBrands = (props) => {
           description: values["description"],
           status: values["status"],
           website: values["website"],
-          is_featured: values.is_featured,
-          logo:  logo,
+          is_featured: values["is_featured"],
+          image: values["image"],
           order: values["order"],
+          url: url
         };
         // save new brand
 
  
+        //     console.log(newBrand);
+        //  return false;
+
         setIsloading(true);
         dispatch(onAddNewBrand(newBrand));
         addBrandApi(
@@ -152,8 +182,9 @@ const ListBrands = (props) => {
           newBrand.status,
           newBrand.website,
           newBrand.is_featured,
-          newBrand.logo,
+          newBrand.image,
           newBrand.order,
+          newBrand.url
         );
         validation.resetForm();
       }
@@ -167,8 +198,9 @@ const ListBrands = (props) => {
     status,
     website,
     is_featured,
-    logo,
+    image,
     order,
+    url
   ) => {
     await fetch(API_URL + "/brands", {
       method: "POST",
@@ -182,16 +214,18 @@ const ListBrands = (props) => {
         status: status,
         website: website,
         is_featured: is_featured,
-        logo: logo,
+        image: image,
         order: order,
+        url: url,
       }),
     })
       .then((response) => response.json())
       .then((data) => {
         setIsloading(false);
-       
+        console.log(data);
         if (data.status === 201) {
           dispatch(addBrandSuccess(data.brand));
+          setUrl("");
         } else {
           dispatch(addBrandFail({ message: data.message , key : errorsInArray(data) }));
         }
@@ -220,8 +254,9 @@ const ListBrands = (props) => {
     status,
     website,
     is_featured,
-    logo,
+    image,
     order,
+    url
   ) => {
 
     await fetch(API_URL + "/brands/" + brand.id, {
@@ -237,8 +272,9 @@ const ListBrands = (props) => {
         status: status,
         website: website,
         is_featured: is_featured,
-        logo: logo,
+        image: image,
         order: order,
+        url: url,
       }),
       
     })
@@ -248,6 +284,7 @@ const ListBrands = (props) => {
         console.log(data);
         if (data.status === 200) {
           dispatch(updateBrandSuccess(data.brand));
+          setUrl("");
         } else {
           dispatch(updateBrandFail({ message: data.message }));
         }
@@ -282,13 +319,13 @@ const ListBrands = (props) => {
       },
       {
         Header: "Thumball",
-        accessor: "logo",
+        accessor: "image",
         disableFilters: true,
         filterable: false,
 
         accessor: (cellProps) => (
           <>
-            {!cellProps.logo ? (
+            {!cellProps.url ? (
               <div className="avatar-xs">
                 <span className="avatar-title rounded-circle">
                   {cellProps.name.charAt(0)}
@@ -298,7 +335,7 @@ const ListBrands = (props) => {
               <div>
                 <img
                   className="rounded-circle avatar-xs"
-                  src={ cellProps.url ? cellProps.url :  BASE_URL+'media/brands/'+cellProps.logo}
+                  src={ cellProps.url ? cellProps.url :  BASE_URL+'media/brands/'+cellProps.image}
                   alt=""
                 />
               </div>
@@ -364,23 +401,9 @@ const ListBrands = (props) => {
   );
 
   useEffect(() => {
-    if (brands) {
-      dispatch(getBrandsSuccess(brands));
-      setIsEdit(false);
-    }
-  }, [dispatch, brands]);
-
-  useEffect(() => {
     setBrandList(brands);
-    setIsEdit(false);
   }, [brands]);
 
-  useEffect(() => {
-    if (!isEmpty(brands) && !!isEdit) {
-      setBrandList(brands);
-      setIsEdit(false);
-    }
-  }, [brands]);
 
   const toggle = () => {
     setModal(!modal);
@@ -396,7 +419,7 @@ const ListBrands = (props) => {
       status: brand.status,
       website: brand.website,
       is_featured: brand.is_featured,
-      logo: brand.logo,
+      image: brand.image,
       order: brand.order,
     });
 
@@ -654,22 +677,81 @@ const ListBrands = (props) => {
                             </div>
 
                             <div className="mb-3">
-                              <Label className="form-label">Logo</Label>
-                              <Input id="logo"
-                                name="logo"
+                              <Label className="form-label">Image</Label>
+                              <Input id="image"
+                                name="image"
                                 type="file"
                                 onChange={ imageHandle}
                                 onBlur={validation.handleBlur}
-                                // value={validation.values.logo || ""}
+                                // value={validation.values.image || ""}
                                 invalid={
-                                  validation.touched.logo &&
-                                  validation.errors.logo
+                                  validation.touched.image &&
+                                  validation.errors.image
                                     ? true
                                     : false
                                 }
                               />
+                              <FormText>
+                                Pour ajouter ou supprimer # Retélecharger de nouveau #</FormText>
+                            
                              
-                            </div> 
+                            </div>
+
+                             <div className="mb-3">
+                              <Label className="form-label">Prévisionnez</Label>
+                              <div className="d-flex flex-wrap w-auto gap-3">
+                              {
+                                  url ?
+                                  <img height={200} width={200} src={url} alt="" />
+                                  : ""
+                                }
+                              </div>
+                            </div>
+                            
+                            
+                            <div className="mb-3">
+                              <Label className="form-label">Images par défault</Label>
+                              <div className="d-flex flex-wrap w-auto gap-3">
+                              {
+                             
+                             validation.values.url ? 
+                              stringToArray(validation.values.url).map((url_, key) => (
+                                <img key={key} className="img-thumbnail" width={200} src={url_} alt="" />
+                              ))
+
+                              :
+
+                              "Aucun"
+
+                      
+                                }
+                              </div>
+                            </div>
+
+
+                            <div className="mb-3">
+                              <Label className="form-label">Image url</Label>
+                              <Input
+                                name="url"
+                                type="text"
+                                onChange={validation.handleChange}
+                                onBlur={validation.handleBlur}
+                                value={validation.values.url }
+                                invalid={
+                                  validation.touched.url &&
+                                  validation.errors.url
+                                    ? true
+                                    : false
+                                }
+                              />
+
+                              {validation.touched.url &&
+                              validation.errors.url ? (
+                                <FormFeedback type="invalid">
+                                  {validation.errors.url}
+                                </FormFeedback>
+                              ) : null}
+                            </div>
 
                           </Col>
                         </Row>

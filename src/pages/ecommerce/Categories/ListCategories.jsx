@@ -16,6 +16,8 @@ import {
   Input,
   Form,
   Alert,
+  FormGroup,
+  FormText
 } from "reactstrap";
 import * as Yup from "yup";
 import { useFormik } from "formik";
@@ -42,6 +44,11 @@ import { isEmpty, values } from "lodash";
 //redux
 import { useSelector, useDispatch } from "react-redux";
 import LoadingSpinner from "../../../components/Loading/LoadingSpinner";
+import { storage } from "../../../helpers/firebase";
+import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
+import { v4 } from "uuid";
+import { stringToArray } from "../../../helpers/functions";
+
 
 const ListCategories = (props) => {
   //meta title
@@ -49,7 +56,8 @@ const ListCategories = (props) => {
   document.title = "Liste des catégories | Admin ";
 
   const [isloading, setIsloading] = useState(false);
-  const [image, setImage] = useState({});
+  const [image, setImage] = useState("");
+  const [url, setUrl] = useState("");
   const dispatch = useDispatch();
   const [category, setCategory] = useState();
   const error = useSelector((state) => state.categories.error);
@@ -58,11 +66,24 @@ const ListCategories = (props) => {
     categories: state.categories.categories,
   }));
 
-  const imageHandle = (e) =>  {
-    const file = e.target
+  const imageHandle = (e) => {
+    
+    const file = e.target;
     setImage(file.files[0]);
-  }
+    if (file.files[0] == null) {
+      return;
+    } else { 
 
+        const imageRef = ref(storage, `media/categories/${file.files[0].name + v4()}`);
+        uploadBytes(imageRef, file.files[0]).then((data) => {
+          getDownloadURL(data.ref).then((url) => {
+            setIsloading(true);
+            setUrl(url);
+            setIsloading(false);  
+          });
+        }); 
+    }
+  };
   //validation
   const validation = useFormik({
     //enableReinitialize : use this flag when initial values needs to be changed
@@ -78,7 +99,7 @@ const ListCategories = (props) => {
       is_featured: (category && category.is_featured) || "",
       is_default: (category && category.is_default) || "",
       image: (category && category.image) || {},
-      image_url: (category && category.image_url) || "",
+      url: (category && category.url) || "",
       link: (category && category.link) || ""
     },
     validationSchema: Yup.object({
@@ -101,7 +122,7 @@ const ListCategories = (props) => {
           is_featured: values.is_featured,
           is_default: values.is_default,
           image: image,
-          image_url: values.image_url,
+          url: url.trim().length==0 ? values.url : url ,
           link: values.link,
         };
 
@@ -120,7 +141,7 @@ const ListCategories = (props) => {
           updateCategory.is_featured,
           updateCategory.is_default,
           updateCategory.image,
-          updateCategory.image_url,
+          updateCategory.url,
           updateCategory.link
         );
 
@@ -136,7 +157,7 @@ const ListCategories = (props) => {
           is_featured: values["is_featured"],
           is_default: values["is_default"],
           image: image,
-          image_url: values["image_url"],
+          url: url,
           link: values["link"],
         };
         // save new category
@@ -156,7 +177,7 @@ const ListCategories = (props) => {
           newCategory.is_featured,
           newCategory.is_default,
           newCategory.image,
-          newCategory.image_url,
+          newCategory.url,
           newCategory.link,
         );
         validation.resetForm();
@@ -175,7 +196,7 @@ const ListCategories = (props) => {
     is_featured,
     is_default,
     image,
-    image_url,
+    url,
     link
   ) => {
     await fetch(API_URL + "/categories", {
@@ -194,7 +215,7 @@ const ListCategories = (props) => {
         is_featured: is_featured,
         is_default: is_default,
         image: image,
-        image_url: image_url,
+        url: url,
         link: link,
       }),
     })
@@ -203,6 +224,7 @@ const ListCategories = (props) => {
         setIsloading(false);
         if (data.status === 201) {
           dispatch(addCategorySuccess(data.category));
+          setUrl("");
         } else {
           dispatch(addCategoryFail({ message: data.message }));
         }
@@ -236,7 +258,7 @@ const ListCategories = (props) => {
     is_featured,
     is_default,
     image,
-    image_url,
+    url,
     link
   ) => {
 
@@ -265,7 +287,7 @@ const ListCategories = (props) => {
         is_featured: is_featured,
         is_default: is_default,
         image: image,
-        image_url: image_url,
+        url: url,
         link : link
       }),
       
@@ -276,6 +298,7 @@ const ListCategories = (props) => {
         console.log(data);
         if (data.status === 200) {
           dispatch(updateCategorySuccess(data.category));
+          setUrl("");
         } else {
           dispatch(updateCategoryFail({ message: data.message }));
         }
@@ -319,7 +342,7 @@ const ListCategories = (props) => {
 
         accessor: (cellProps) => (
           <>
-            {!cellProps.image ? (
+            {!cellProps.url ? (
               <div className="avatar-xs">
                 <span className="avatar-title rounded-circle">
                   {cellProps.name.charAt(0)}
@@ -329,7 +352,7 @@ const ListCategories = (props) => {
               <div>
                 <img
                   className="rounded-circle avatar-xs"
-                  src={ cellProps.image_url ? cellProps.image_url :  BASE_URL+'media/categories/'+cellProps.image}
+                  src={ cellProps.url ? cellProps.url :  BASE_URL+'media/products/'+cellProps.image}
                   alt=""
                 />
               </div>
@@ -395,23 +418,9 @@ const ListCategories = (props) => {
   );
 
   useEffect(() => {
-    if (categories) {
-      dispatch(getCategoriesSuccess(categories));
-      setIsEdit(false);
-    }
-  }, [dispatch, categories]);
-
-  useEffect(() => {
     setCategoryList(categories);
-    setIsEdit(false);
   }, [categories]);
 
-  useEffect(() => {
-    if (!isEmpty(categories) && !!isEdit) {
-      setCategoryList(categories);
-      setIsEdit(false);
-    }
-  }, [categories]);
 
   const toggle = () => {
     setModal(!modal);
@@ -431,7 +440,7 @@ const ListCategories = (props) => {
       is_featured: category.is_featured,
       is_default: category.is_default,
       image: category.image,
-      image_url: category.image_url,
+      url: category.url,
       link: category.link,
     });
 
@@ -495,11 +504,11 @@ const ListCategories = (props) => {
           />
 
             {error.message ? <Alert color="danger">{error.message} :
-                <ul>
+                {/* <ul>
                 {error.key.map((item) =>{
                   return <li> { item } </li>
                 })} 
-                </ul>
+                </ul> */}
 
             </Alert> : null}
           <Row>
@@ -784,29 +793,64 @@ const ListCategories = (props) => {
                                     : false
                                 }
                               />
-                             
-                            </div> 
+                              <FormText>
+                                Pour ajouter ou supprimer # Retélecharger de nouveau #</FormText>
                             
+                             
+                            </div>
+
+                             <div className="mb-3">
+                              <Label className="form-label">Prévisionnez</Label>
+                              <div className="d-flex flex-wrap w-auto gap-3">
+                              {
+                                  url ?
+                                  <img height={200} width={200} src={url} alt="" />
+                                  : ""
+                                }
+                              </div>
+                            </div>
+                            
+                            
+                            <div className="mb-3">
+                              <Label className="form-label">Images par défault</Label>
+                              <div className="d-flex flex-wrap w-auto gap-3">
+                              {
+                             
+                             validation.values.url ? 
+                              stringToArray(validation.values.url).map((url_, key) => (
+                                <img key={key} className="img-thumbnail" width={200} src={url_} alt="" />
+                              ))
+
+                              :
+
+                              "Aucun"
+
+                      
+                                }
+                              </div>
+                            </div>
+
+
                             <div className="mb-3">
                               <Label className="form-label">Image url</Label>
                               <Input
-                                name="image_url"
+                                name="url"
                                 type="text"
                                 onChange={validation.handleChange}
                                 onBlur={validation.handleBlur}
-                                value={validation.values.image_url }
+                                value={validation.values.url }
                                 invalid={
-                                  validation.touched.image_url &&
-                                  validation.errors.image_url
+                                  validation.touched.url &&
+                                  validation.errors.url
                                     ? true
                                     : false
                                 }
                               />
 
-                              {validation.touched.image_url &&
-                              validation.errors.image_url ? (
+                              {validation.touched.url &&
+                              validation.errors.url ? (
                                 <FormFeedback type="invalid">
-                                  {validation.errors.image_url}
+                                  {validation.errors.url}
                                 </FormFeedback>
                               ) : null}
                             </div>

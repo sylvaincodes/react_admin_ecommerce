@@ -16,6 +16,7 @@ import {
   Input,
   Form,
   Alert,
+  FormText,
 } from "reactstrap";
 import * as Yup from "yup";
 import { useFormik } from "formik";
@@ -43,6 +44,10 @@ import { isEmpty, values } from "lodash";
 import { useSelector, useDispatch } from "react-redux";
 import LoadingSpinner from "../../../components/Loading/LoadingSpinner";
 import { getSlidesSuccess } from "../../../redux/slides/actions";
+import { storage } from "../../../helpers/firebase";
+import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
+import { v4 } from "uuid";
+import { stringToArray } from "../../../helpers/functions";
 
 const ListSlidesItems = (props) => {
   //meta title
@@ -52,14 +57,30 @@ const ListSlidesItems = (props) => {
   const [isloading, setIsloading] = useState(false);
   const dispatch = useDispatch();
   const [slidesitem, setSlidesItem] = useState();
-  const [image, setImage] = useState({});
-  
+  const [image, setImage] = useState("");
+  const [url, setUrl] = useState("");
+
   const error = useSelector((state) => state.slidesitems.error);
 
-  const imageHandle = (e) =>  {
-    const file = e.target
+  const imageHandle = (e) => {
+    
+    const file = e.target;
     setImage(file.files[0]);
-  }
+    if (file.files[0] == null) {
+      return;
+    } else { 
+
+        const imageRef = ref(storage, `media/slides/${file.files[0].name + v4()}`);
+        uploadBytes(imageRef, file.files[0]).then((data) => {
+          getDownloadURL(data.ref).then((url) => {
+            setIsloading(true);
+            setUrl(url);
+            setIsloading(false);  
+          });
+        }); 
+    }
+  };
+  
 
   useEffect(() => {
     fetch(API_URL + "/slides", {
@@ -112,8 +133,8 @@ const ListSlidesItems = (props) => {
           link: values.link,
           order: values.order,         
           btn: values.btn,
-          image: image,
-          url: values.url,
+          images: values.images,
+          url: url.trim().length==0 ? values.url : url ,
         };
 
         //update slidesitem
@@ -142,8 +163,8 @@ const ListSlidesItems = (props) => {
           link: values['link'],
           btn: values["btn"],
           order: values['order'],  
-          image: image,
-          url: values['url'],
+          images: values['images'],
+          url: url,
         };
 
         //save new slidesitem
@@ -196,14 +217,14 @@ const ListSlidesItems = (props) => {
         link: link,
         order: order,
         btn: btn,
-        url: url,
         image: image,
+        url: url,
       }),
     })
       .then((response) => response.json())
       .then((data) => {
         setIsloading(false);
-        console.log(data);
+        setUrl("");
         if (data.status === 201) {
           dispatch(addSlidesitemSuccess(data.slidesitem));
         } else {
@@ -255,8 +276,8 @@ const ListSlidesItems = (props) => {
         subtitle: subtitle,
         description: description,
         link: link,
-        order: order,
         btn: btn,
+        order: order,
         image: image,
         url: url,
       }),      
@@ -264,6 +285,7 @@ const ListSlidesItems = (props) => {
       .then((response) => response.json())
       .then((data) => {
         setIsloading(false);
+        setUrl("");
         if (data.status === 200) {
           dispatch(updateSlidesitemSuccess(data.slidesitem));
         } else {
@@ -699,7 +721,41 @@ const ListSlidesItems = (props) => {
                                     : false
                                 }
                               />
+                              <FormText>
+                                Pour ajouter ou supprimer # Retélecharger de nouveau #</FormText>
+                            
                              
+                            </div>
+
+                             <div className="mb-3">
+                              <Label className="form-label">Prévisionnez</Label>
+                              <div className="d-flex flex-wrap w-auto gap-3">
+                              {
+                                  url ?
+                                  <img height={200} width={200} src={url} alt="" />
+                                  : ""
+                                }
+                              </div>
+                            </div>
+                            
+                            
+                            <div className="mb-3">
+                              <Label className="form-label">Images par défault</Label>
+                              <div className="d-flex flex-wrap w-auto gap-3">
+                              {
+                             
+                             validation.values.url ? 
+                              stringToArray(validation.values.url).map((url_, key) => (
+                                <img key={key} className="img-thumbnail" width={200} src={url_} alt="" />
+                              ))
+
+                              :
+
+                              "Aucun"
+
+                      
+                                }
+                              </div>
                             </div>
 
                             <div className="mb-3">

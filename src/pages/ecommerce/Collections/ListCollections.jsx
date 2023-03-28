@@ -17,6 +17,8 @@ import {
   Form,
   Alert,
   Fade,
+  FormText,
+  FormGroup
 } from "reactstrap";
 import * as Yup from "yup";
 import { useFormik } from "formik";
@@ -44,6 +46,10 @@ import { isEmpty, values } from "lodash";
 import { useSelector, useDispatch } from "react-redux";
 import LoadingSpinner from "../../../components/Loading/LoadingSpinner";
 import { errorsInArray } from "../../../helpers/functions";
+import { storage } from "../../../helpers/firebase";
+import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
+import { v4 } from "uuid";
+import { stringToArray } from "../../../helpers/functions";
 
 const ListCollections = (props) => {
   //meta title
@@ -51,7 +57,9 @@ const ListCollections = (props) => {
   document.title = "Liste des collections | Admin ";
 
   const [isloading, setIsloading] = useState(false);
-  const [image, setImage] = useState({});
+  const [image, setImage] = useState("");
+  const [url, setUrl] = useState("");
+  
   const dispatch = useDispatch();
   const [collection, setCollection] = useState();
   const [collectionList, setCollectionList] = useState([]);
@@ -65,10 +73,24 @@ const ListCollections = (props) => {
     collections: state.collections.collections,
   }));
 
-  const imageHandle = (e) =>  {
-    const file = e.target
+  const imageHandle = (e) => {
+    
+    const file = e.target;
     setImage(file.files[0]);
-  }
+    if (file.files[0] == null) {
+      return;
+    } else { 
+
+        const imageRef = ref(storage, `media/collections/${file.files[0].name + v4()}`);
+        uploadBytes(imageRef, file.files[0]).then((data) => {
+          getDownloadURL(data.ref).then((url) => {
+            setIsloading(true);
+            setUrl(url);
+            setIsloading(false);  
+          });
+        }); 
+    }
+  };
   
   //validation
   const validation = useFormik({
@@ -83,6 +105,7 @@ const ListCollections = (props) => {
       is_featured: (collection && collection.is_featured) || "",
       image: (collection && collection.image) || {},
       order: (collection && collection.order) || "0",
+      url: (collection && collection.url) || ""
     },
     validationSchema: Yup.object({
       name: Yup.string().required("Entrer le libelle"),
@@ -101,6 +124,7 @@ const ListCollections = (props) => {
           is_featured: values.is_featured ,
           image: image,
           order: values.order,
+          url: url.trim().length==0 ? values.url : url ,
         };
 
         //  console.log(updateCollection);
@@ -119,6 +143,7 @@ const ListCollections = (props) => {
           updateCollection.is_featured,
           updateCollection.image,
           updateCollection.order,
+          updateCollection.url
         );
 
       } else {
@@ -131,6 +156,7 @@ const ListCollections = (props) => {
           is_featured: values.is_featured,
           image:  image,
           order: values["order"],
+          url: url
         };
         // save new collection
 
@@ -145,6 +171,7 @@ const ListCollections = (props) => {
           newCollection.is_featured,
           newCollection.image,
           newCollection.order,
+          newCollection.url
         );
         validation.resetForm();
       }
@@ -160,6 +187,7 @@ const ListCollections = (props) => {
     is_featured,
     image,
     order,
+    url
   ) => {
     await fetch(API_URL + "/collections", {
       method: "POST",
@@ -175,15 +203,15 @@ const ListCollections = (props) => {
         is_featured: is_featured,
         image: image,
         order: order,
+        url: url,
       }),
     })
       .then((response) => response.json())
       .then((data) => {
         setIsloading(false);
-       
-        console.log(data);
         if (data.status === 201) {
           dispatch(addCollectionSuccess(data.collection));
+          setUrl("");
         } else {
           dispatch(addCollectionFail({ message: data.message , key : errorsInArray(data) }));
         }
@@ -215,6 +243,7 @@ const ListCollections = (props) => {
     is_featured,
     image,
     order,
+    url
   ) => {
 
     await fetch(API_URL + "/collections/" + collection.id, {
@@ -232,6 +261,7 @@ const ListCollections = (props) => {
         is_featured: is_featured,
         image: image,
         order: order,
+        url: url,
       }),
       
     })
@@ -356,23 +386,9 @@ const ListCollections = (props) => {
     []
   );
 
-  useEffect(() => {
-    if (collections) {
-      dispatch(getCollectionsSuccess(collections));
-      setIsEdit(false);
-    }
-  }, [dispatch, collections]);
 
   useEffect(() => {
     setCollectionList(collections);
-    setIsEdit(false);
-  }, [collections]);
-
-  useEffect(() => {
-    if (!isEmpty(collections) && !!isEdit) {
-      setCollectionList(collections);
-      setIsEdit(false);
-    }
   }, [collections]);
 
   const toggle = () => {
@@ -662,8 +678,67 @@ const ListCollections = (props) => {
                                     : false
                                 }
                               />
+                              <FormText>
+                                Pour ajouter ou supprimer # Retélecharger de nouveau #</FormText>
+                            
                              
-                            </div> 
+                            </div>
+
+                             <div className="mb-3">
+                              <Label className="form-label">Prévisionnez</Label>
+                              <div className="d-flex flex-wrap w-auto gap-3">
+                              {
+                                  url ?
+                                  <img height={200} width={200} src={url} alt="" />
+                                  : ""
+                                }
+                              </div>
+                            </div>
+                            
+                            
+                            <div className="mb-3">
+                              <Label className="form-label">Images par défault</Label>
+                              <div className="d-flex flex-wrap w-auto gap-3">
+                              {
+                             
+                             validation.values.url ? 
+                              stringToArray(validation.values.url).map((url_, key) => (
+                                <img key={key} className="img-thumbnail" width={200} src={url_} alt="" />
+                              ))
+
+                              :
+
+                              "Aucun"
+
+                      
+                                }
+                              </div>
+                            </div>
+
+
+                            <div className="mb-3">
+                              <Label className="form-label">Image url</Label>
+                              <Input
+                                name="url"
+                                type="text"
+                                onChange={validation.handleChange}
+                                onBlur={validation.handleBlur}
+                                value={validation.values.url }
+                                invalid={
+                                  validation.touched.url &&
+                                  validation.errors.url
+                                    ? true
+                                    : false
+                                }
+                              />
+
+                              {validation.touched.url &&
+                              validation.errors.url ? (
+                                <FormFeedback type="invalid">
+                                  {validation.errors.url}
+                                </FormFeedback>
+                              ) : null}
+                            </div>
 
                           </Col>
                         </Row>
