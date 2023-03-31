@@ -39,8 +39,8 @@ import french from "../assets/images/flags/french.jpg";
 //Languages
 import * as RiIcons from "react-icons/ri";
 
-export const API_URL = "http://192.168.1.5:8000/api";
-export const BASE_URL = "http://192.168.1.5:8000/";
+export const API_URL = "http://localhost:8000/api";
+export const BASE_URL = "http://localhost:8000/";
 export const token = JSON.parse(localStorage.getItem("user")) ?  JSON.parse(localStorage.getItem("user")).token : "";
 
 
@@ -331,7 +331,7 @@ export const SidebarData = [
         path: "/ecommerce/produits",
       },
       {
-        title: "Categories Produits",
+        title: "Categorie de produits",
         path: "/ecommerce/categories",
       }, 
       {
@@ -341,6 +341,14 @@ export const SidebarData = [
       {
         title: "Collection de produits",
         path: "/ecommerce/collections",
+      },
+      {
+        title: "Attributs de produits",
+        path: "/ecommerce/pattributes",
+      },
+      {
+        title: "Valeurs Attributs de produits",
+        path: "/ecommerce/pattributeitems",
       },
       {
         title: "Commandes",
@@ -391,7 +399,7 @@ export const SidebarData = [
 
     subNav: [
       {
-        title: "Comptes",
+        title: "Comptes", 
         path: "/users/list",
       },
     ],

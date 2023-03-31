@@ -14,6 +14,8 @@ import ListSlidesItems from "../pages/parametres/Slides Items/ListSlidesItems";
 import ListBrands from "../pages/ecommerce/Brands/ListBrands";
 import ListCollections from "../pages/ecommerce/Collections/ListCollections";
 import ListProducts from "../pages/ecommerce/Products/ListProducts";
+import ListPattributes from "../pages/ecommerce/Pattributes/ListPattributes";
+import ListPattributeItems from "../pages/ecommerce/Pattributeitems/ListPattributeItems";
 
 //Public routes
 const publicRoutes = [{ path: "/login", component: Login } , { path: "/register", component: Register }  ];
@@ -29,6 +31,8 @@ const authProtectedRoutes =  [
     { path: "/parametres/slides/list", component: ListSlides },
     { path: "/parametres/slides/items/list", component: ListSlidesItems },
     { path: "/ecommerce/collections", component: ListCollections },
+    { path: "/ecommerce/pattributes", component: ListPattributes },
+    { path: "/ecommerce/pattributeitems", component: ListPattributeItems },
 ];
 
 export { publicRoutes, authProtectedRoutes }

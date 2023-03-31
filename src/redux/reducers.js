@@ -10,6 +10,8 @@ import slides from './slides/reducer'
 import slidesitems from './slidesitems/reducer'
 import brands from "./brands/reducer";
 import collections from "./collections/reducer"
+import pattributes from "./pattributes/reducer";
+import pattributeitems from "./pattributeitems/reducer";
 
 const rootReducer = combineReducers(
   {
@@ -20,7 +22,9 @@ const rootReducer = combineReducers(
     slides,
     slidesitems,
     brands,
-    collections
+    collections,
+    pattributes,
+    pattributeitems
   },
 
 );
