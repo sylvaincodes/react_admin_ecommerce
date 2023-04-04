@@ -1,6 +1,5 @@
 import React from 'react'
 import { Card, CardBody } from 'reactstrap'
-import * as FaIcons from "react-icons/fa";
 
 const Minicard = (props) => {
   return (

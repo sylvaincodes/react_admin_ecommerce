@@ -17,6 +17,6 @@ export const errorsInArray = (data) => {
 
 export const stringToArray = (myString) => {
   var array = myString.split(";");
-  array = array.filter( item => item != "" )
+  array = array.filter( item => item !== "" )
   return array;
 };

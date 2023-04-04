@@ -138,7 +138,7 @@ const ListUsers = (props) => {
       .then((response) => response.json())
       .then((data) => {
         setIsloading(false);
-        if (data.status == "201") {
+        if (data.status === 201) {
           dispatch(addUserSuccess(data.user));
         } else {
           dispatch(addUserFail({ message: data.message }));
@@ -185,7 +185,7 @@ const ListUsers = (props) => {
       .then((response) => response.json())
       .then((data) => {
         setIsloading(false);
-        if (data.status == "200") {
+        if (data.status === 200) {
           dispatch(updateUserSuccess(data.user));
           dispatch(updateUserFail({ message: data.message }));
         } else {
@@ -333,24 +333,11 @@ const ListUsers = (props) => {
     []
   );
 
+  
   useEffect(() => {
-    if (users && !users.length) {
-      dispatch(onGetUsers());
-      setIsEdit(false);
-    }
-  }, [dispatch, users]);
-
-  useEffect(() => {
-    setUser(users);
-    setIsEdit(false);
+    setUserList(users);
   }, [users]);
 
-  useEffect(() => {
-    if (!isEmpty(users) && !!isEdit) {
-      setUser(users);
-      setIsEdit(false);
-    }
-  }, [users]);
 
   const toggle = () => {
     setModal(!modal);

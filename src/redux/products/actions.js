@@ -11,6 +11,7 @@ import {
   DELETE_PRODUCT,
   DELETE_PRODUCT_SUCCESS,
   DELETE_PRODUCT_FAIL,
+  SET_PRODUCT_SUCCESS
 } from "./actionTypes.js";
 
 export const getProducts = () => ({
@@ -72,5 +73,10 @@ export const deleteProductSuccess = product => ({
 export const deleteProductFail = error => ({
   type: DELETE_PRODUCT_FAIL,
   payload: error,
+})
+
+export const setProductSuccess = product => ({
+  type: SET_PRODUCT_SUCCESS,
+  payload: product,
 })
 

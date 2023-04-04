@@ -12,6 +12,9 @@ import brands from "./brands/reducer";
 import collections from "./collections/reducer"
 import pattributes from "./pattributes/reducer";
 import pattributeitems from "./pattributeitems/reducer";
+import pvariations
+ from "./pvariations/reducer";
+import pvariationattributes from './pvariationattributes/reducer'
 
 const rootReducer = combineReducers(
   {
@@ -24,7 +27,9 @@ const rootReducer = combineReducers(
     brands,
     collections,
     pattributes,
-    pattributeitems
+    pattributeitems,
+    pvariations,
+    pvariationattributes,
   },
 
 );

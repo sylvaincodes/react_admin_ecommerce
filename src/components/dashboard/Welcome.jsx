@@ -1,9 +1,5 @@
 import React from 'react'
-import { Card, CardBody, CardHeader, Col, Row } from 'reactstrap'
-import login_header from "../../assets/images/profile-img.png";
-import { Link } from 'react-router-dom';
-
-import avatar1 from "../../assets/images/users/avatar-1.jpg"
+import { Card, Col, Row } from 'reactstrap'
 import profileImg from "../../assets/images/profile-img.png"
 
 const Welcome = () => {

@@ -37,6 +37,7 @@ import {
   updateProductFail,
   deleteProductSuccess,
   deleteProductFail,
+  setProductSuccess,
 } from "../../../redux/products/actions";
 
 import { values } from "lodash";
@@ -241,7 +242,6 @@ const ListProducts = (props) => {
       })
       .catch((e) => {
         setIsloading(true);
-        console.log(e);
       });
   };
 
@@ -312,6 +312,7 @@ const ListProducts = (props) => {
   const [isEdit, setIsEdit] = useState(false);
 
   useEffect(() => {
+    setIsloading(true);
     fetch(API_URL + "/products", {
       headers: {
         Authorization: "Bearer " + token,
@@ -321,6 +322,7 @@ const ListProducts = (props) => {
       .then((array) => {
         setProductList(array.data);
         dispatch(getProductsSuccess(array));
+        setIsloading(false);
       });
   }, []);
 
@@ -332,7 +334,6 @@ const ListProducts = (props) => {
           return <input type="checkbox" />;
         },
       },
-
       {
         Header: "Thumball",
         accessor: "image",
@@ -367,7 +368,6 @@ const ListProducts = (props) => {
           return <Name {...cellProps} />;
         },
       },
-
       {
         Header: "Catégorie",
         accessor: "category",
@@ -417,6 +417,20 @@ const ListProducts = (props) => {
                   Supprimer
                 </UncontrolledTooltip>
               </Link>
+              
+              
+              <Link
+                to={`/ecommerce/pvariations`}
+                className="text-danger"
+                onClick={ () => {
+                    handleSetProduct(cellProps.row.original)
+                } }
+              >
+                <i className="mdi mdi-plus font-size-18" id="addooltip" />
+                <UncontrolledTooltip placement="top" target="addooltip">
+                  Ajouter une variation
+                </UncontrolledTooltip>
+              </Link>
             </div>
           );
         },
@@ -453,6 +467,11 @@ const ListProducts = (props) => {
     setIsEdit(true);
 
     toggle();
+  };  
+  
+  
+  const handleSetProduct = (arg) => {
+    dispatch(setProductSuccess(arg));
   };
 
   var node = useRef();

@@ -1,5 +1,5 @@
 import React , { useState } from 'react'
-import { Link, Navigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { Dropdown, DropdownMenu, DropdownToggle } from 'reactstrap'
 import avatar1 from "../../assets/images/users/avatar-1.jpg"
 import { API_URL, token } from '../../data'
@@ -24,7 +24,7 @@ const ProfilMenu = () => {
         })
           .then((response) => response.json())
           .then((data) => {
-            if (data.status == "200") {
+            if (data.status === 200) {
               localStorage.removeItem('user');
               dispatch(logoutRequest());
               navigate("/login");

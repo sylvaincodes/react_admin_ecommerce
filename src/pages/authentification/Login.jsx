@@ -16,8 +16,6 @@ import {
   Alert,
 } from "reactstrap";
 
-import {  history } from '../../helpers/history'; 
-
 import login_header from "../../assets/images/profile-img.png";
 import logo from "../../assets/images/logo.svg";
 import { Link } from "react-router-dom";
@@ -34,28 +32,22 @@ import { useNavigate } from "react-router-dom";
 import { API_URL } from "../../data";
 
 const Login = (props) => {
+  const navigate = useNavigate();
 
-const navigate = useNavigate();
-
-
-useEffect(() => {
-  if(localStorage.getItem("user")) {
-    navigate('/dashboard');
+  useEffect(() => {
+    if (localStorage.getItem("user")) {
+      navigate("/dashboard");
     }
-}, [])
-
+  }, [navigate]);
 
   document.title = "Login | Admin Ecommerce";
-  
+
   const dispatch = useDispatch();
 
-  const [isloading, setIsloading] = useState(false)
+  const [isloading, setIsloading] = useState(false);
   const error = useSelector((state) => state.login.error);
-  const token = useSelector((state) => state.login.token);
-
-  const loginAuth = async (email, password) => 
-  {
-    await fetch(API_URL+"/login", {
+  const loginAuth = async (email, password) => {
+    await fetch(API_URL + "/login", {
       method: "POST",
       body: JSON.stringify({
         email: email,
@@ -67,12 +59,14 @@ useEffect(() => {
     })
       .then((response) => response.json())
       .then((data) => {
-        if (data.status == "200") {    
-          localStorage.setItem("user", JSON.stringify(data));          
+        if (data.status === 200) {
+          localStorage.setItem("user", JSON.stringify(data));
           dispatch(loginSuccess(data.user));
           navigate("/");
-         } else {
-          dispatch(loginFailure({ message : data.message  , key: data.errors.key}));
+        } else {
+          dispatch(
+            loginFailure({ message: data.message, key: data.errors.key })
+          );
         }
         setIsloading(false);
       })
@@ -127,18 +121,17 @@ useEffect(() => {
                   </div>
                   <Container className="py-5">
                     <Form onSubmit={loginValidation.handleSubmit}>
-                      
-                      
-                    {error.message ? <Alert color="danger">{error.message} :
-                <ul>
-                {error.key.map((item) =>{
-                  return <li> { item } </li>
-                })} 
-                </ul>
+                      {error.message ? (
+                        <Alert color="danger">
+                          {error.message} :
+                          <ul>
+                            {error.key.map((item) => {
+                              return <li> {item} </li>;
+                            })}
+                          </ul>
+                        </Alert>
+                      ) : null}
 
-            </Alert> : null}
-                      
-                      
                       <div className="mb-4">
                         <Label>Email</Label>
                         <Input

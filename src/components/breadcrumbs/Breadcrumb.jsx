@@ -12,7 +12,8 @@ const Breadcrumb = props => {
           <div className="page-title-right">
             <ol className="breadcrumb m-0">
               <BreadcrumbItem>
-                <Link to="#">{props.title}</Link>
+              <i className="fa fa-arrow-back font-size-18"/>
+                <Link to={props.back}>{props.title}</Link>
               </BreadcrumbItem>
               <BreadcrumbItem active>
                 <Link to="#">{props.breadcrumbItem}</Link>

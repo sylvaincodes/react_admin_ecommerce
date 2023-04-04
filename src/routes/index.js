@@ -7,7 +7,6 @@ import Dashboard from "../pages/dashboard/Dashboard";
 import eDashboard from "../pages/ecommerce/Dashboard";
 import ListUsers from "../pages/utilisateurs/ListUsers";
 import ListCategories from "../pages/ecommerce/Categories/ListCategories";
-import GridProducts from "../pages/ecommerce/Products/GridProducts";
 import TableProducts from "../pages/ecommerce/Products/TableProducts";
 import ListSlides from "../pages/parametres/Slides/ListSlides";
 import ListSlidesItems from "../pages/parametres/Slides Items/ListSlidesItems";
@@ -16,6 +15,8 @@ import ListCollections from "../pages/ecommerce/Collections/ListCollections";
 import ListProducts from "../pages/ecommerce/Products/ListProducts";
 import ListPattributes from "../pages/ecommerce/Pattributes/ListPattributes";
 import ListPattributeItems from "../pages/ecommerce/Pattributeitems/ListPattributeItems";
+import ListPvariations from "../pages/ecommerce/Pvariations/ListPvariations";
+import ListPvariationattributes from '../pages/ecommerce/Pvariationattributes/ListPvariationattributes'
 
 //Public routes
 const publicRoutes = [{ path: "/login", component: Login } , { path: "/register", component: Register }  ];
@@ -33,6 +34,8 @@ const authProtectedRoutes =  [
     { path: "/ecommerce/collections", component: ListCollections },
     { path: "/ecommerce/pattributes", component: ListPattributes },
     { path: "/ecommerce/pattributeitems", component: ListPattributeItems },
+    { path: "/ecommerce/pvariations", component: ListPvariations },
+    { path: "/ecommerce/pvariationattributes", component: ListPvariationattributes }
 ];
 
 export { publicRoutes, authProtectedRoutes }

@@ -16,7 +16,6 @@ import {
   Input,
   Form,
   Alert,
-  FormGroup,
   FormText
 } from "reactstrap";
 import * as Yup from "yup";
@@ -39,7 +38,7 @@ import {
   deleteCategoryFail,
 } from "../../../redux/categories/actions";
 
-import { isEmpty, values } from "lodash";
+import { values } from "lodash";
 
 //redux
 import { useSelector, useDispatch } from "react-redux";
@@ -84,7 +83,7 @@ const ListCategories = (props) => {
         }); 
     }
   };
-  //validation
+
   const validation = useFormik({
     //enableReinitialize : use this flag when initial values needs to be changed
     enableReinitialize: true,
@@ -462,7 +461,6 @@ const ListCategories = (props) => {
     }
   };
 
-  //delete customer
   const [deleteModal, setDeleteModal] = useState(false);
 
   const onClickDelete = (category) => {

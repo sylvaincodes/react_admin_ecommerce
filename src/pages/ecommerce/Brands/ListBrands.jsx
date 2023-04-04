@@ -16,9 +16,7 @@ import {
   Input,
   Form,
   Alert,
-  Fade,
   FormText,
-  FormGroup 
 } from "reactstrap";
 import * as Yup from "yup";
 import { useFormik } from "formik";
@@ -27,7 +25,6 @@ import Breadcrumbs from "../../../components/breadcrumbs/Breadcrumb";
 import DeleteModal from "../../../components/modals/DeleteModal";
 import { API_URL, BASE_URL, token } from "../../../data";
 import {
-  getBrands as onGetBrands,
   addNewBrand as onAddNewBrand,
   updateBrand as onUpdateBrand,
   deleteBrand as onDeleteBrand,
@@ -37,10 +34,7 @@ import {
   updateBrandSuccess,
   updateBrandFail,
   deleteBrandSuccess,
-  deleteBrandFail,
 } from "../../../redux/brands/actions";
-
-import { isEmpty, values } from "lodash";
 
 //redux
 import { useSelector, useDispatch } from "react-redux";
@@ -50,7 +44,6 @@ import { storage } from "../../../helpers/firebase";
 import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
 import { v4 } from "uuid";
 import { stringToArray } from "../../../helpers/functions";
-
 
 const ListBrands = (props) => {
   //meta title
@@ -63,44 +56,34 @@ const ListBrands = (props) => {
   const [brandList, setBrandList] = useState([]);
   const [modal, setModal] = useState(false);
   const [isEdit, setIsEdit] = useState(false);
-  const [image, setImage] = useState("");
+  // const [image, setImage] = useState("");
   const [url, setUrl] = useState("");
 
-  const checkboxRef = useRef("");
-
-
-  const handleChangeCheckbox = (e) => {
-    // setCheckbox(checkboxRef.current.checked);
-    console.log(e.target.value);
-    //e.target.checked=false;
-    e.target.setAttribute("className","false");
-  };
-
-  const error = useSelector( state => state.brands.error);
+  const error = useSelector((state) => state.brands.error);
 
   const { brands } = useSelector((state) => ({
     brands: state.brands.brands,
   }));
 
   const imageHandle = (e) => {
-    
     const file = e.target;
-    setImage(file.files[0]);
+    // setImage(file.files[0]);
     if (file.files[0] == null) {
       return;
-    } else { 
-
-        const imageRef = ref(storage, `media/brands/${file.files[0].name + v4()}`);
-        uploadBytes(imageRef, file.files[0]).then((data) => {
-          getDownloadURL(data.ref).then((url) => {
-            setIsloading(true);
-            setUrl(url);
-            setIsloading(false);  
-          });
-        }); 
+    } else {
+      const imageRef = ref(
+        storage,
+        `media/brands/${file.files[0].name + v4()}`
+      );
+      uploadBytes(imageRef, file.files[0]).then((data) => {
+        getDownloadURL(data.ref).then((url) => {
+          setIsloading(true);
+          setUrl(url);
+          setIsloading(false);
+        });
+      });
     }
   };
-
 
   //validation
   const validation = useFormik({
@@ -115,7 +98,7 @@ const ListBrands = (props) => {
       is_featured: (brand && brand.is_featured) || "",
       image: (brand && brand.image) || {},
       order: (brand && brand.order) || "",
-      url: (brand && brand.url) || ""
+      url: (brand && brand.url) || "",
     },
     validationSchema: Yup.object({
       name: Yup.string().required("Entrer le libelle"),
@@ -131,15 +114,15 @@ const ListBrands = (props) => {
           description: values.description,
           status: values.status,
           website: values.website,
-          is_featured: values.is_featured ,
+          is_featured: values.is_featured,
           image: values.image,
           order: values.order,
-          url: url.trim().length==0 ? values.url : url ,
+          url: url.trim().length === 0 ? values.url : url,
         };
 
         //  console.log(updateBrand);
         //  return false;
-        
+
         //update brand
         dispatch(onUpdateBrand(updateBrand));
         validation.resetForm();
@@ -155,7 +138,6 @@ const ListBrands = (props) => {
           updateBrand.order,
           updateBrand.url
         );
-
       } else {
         const newBrand = {
           id: Math.floor(Math.random() * (30 - 20)) + 20,
@@ -166,11 +148,10 @@ const ListBrands = (props) => {
           is_featured: values["is_featured"],
           image: values["image"],
           order: values["order"],
-          url: url
+          url: url,
         };
         // save new brand
 
- 
         //     console.log(newBrand);
         //  return false;
 
@@ -227,7 +208,9 @@ const ListBrands = (props) => {
           dispatch(addBrandSuccess(data.brand));
           setUrl("");
         } else {
-          dispatch(addBrandFail({ message: data.message , key : errorsInArray(data) }));
+          dispatch(
+            addBrandFail({ message: data.message, key: errorsInArray(data) })
+          );
         }
       })
       .catch((e) => {
@@ -242,7 +225,6 @@ const ListBrands = (props) => {
         Authorization: "Bearer " + token,
       },
     }).then((response) => {
-      const data = response.json();
       setIsloading(false);
       dispatch(deleteBrandSuccess(brand));
     });
@@ -258,15 +240,13 @@ const ListBrands = (props) => {
     order,
     url
   ) => {
-
     await fetch(API_URL + "/brands/" + brand.id, {
       method: "PUT",
       headers: {
         Authorization: "Bearer " + token,
         "Content-type": "application/json",
       },
-       body:
-      JSON.stringify({
+      body: JSON.stringify({
         name: name,
         description: description,
         status: status,
@@ -276,7 +256,6 @@ const ListBrands = (props) => {
         order: order,
         url: url,
       }),
-      
     })
       .then((response) => response.json())
       .then((data) => {
@@ -294,6 +273,27 @@ const ListBrands = (props) => {
       });
   };
 
+
+  const handleBrandClick = (arg) => {
+    const brand = arg;
+
+    setBrand({
+      id: brand.id,
+      name: brand.name,
+      description: brand.description,
+      status: brand.status,
+      website: brand.website,
+      is_featured: brand.is_featured,
+      image: brand.image,
+      order: brand.order,
+      url: brand.url,
+    });
+
+    setIsEdit(true);
+
+    toggle();
+  };
+
   useEffect(() => {
     fetch(API_URL + "/brands", {
       headers: {
@@ -303,11 +303,10 @@ const ListBrands = (props) => {
       .then((response) => response.json())
       .then((array) => {
         setBrandList(array);
-        console.log(array);
         dispatch(getBrandsSuccess(array));
       });
-    }, [dispatch]);
-    
+  }, [dispatch]);
+
 
   const columns = useMemo(
     () => [
@@ -319,7 +318,6 @@ const ListBrands = (props) => {
       },
       {
         Header: "Thumball",
-        accessor: "image",
         disableFilters: true,
         filterable: false,
 
@@ -335,7 +333,11 @@ const ListBrands = (props) => {
               <div>
                 <img
                   className="rounded-circle avatar-xs"
-                  src={ cellProps.url ? cellProps.url :  BASE_URL+'media/brands/'+cellProps.image}
+                  src={
+                    cellProps.url
+                      ? cellProps.url
+                      : BASE_URL + "media/brands/" + cellProps.image
+                  }
                   alt=""
                 />
               </div>
@@ -350,8 +352,8 @@ const ListBrands = (props) => {
         Cell: (cellProps) => {
           return <Name {...cellProps} />;
         },
-      }, 
-      
+      },
+
       {
         Header: "Description",
         accessor: "description",
@@ -404,29 +406,10 @@ const ListBrands = (props) => {
     setBrandList(brands);
   }, [brands]);
 
-
   const toggle = () => {
     setModal(!modal);
   };
 
-  const handleBrandClick = (arg) => {
-    const brand = arg;
-
-    setBrand({
-      id: brand.id,
-      name: brand.name,
-      description: brand.description,
-      status: brand.status,
-      website: brand.website,
-      is_featured: brand.is_featured,
-      image: brand.image,
-      order: brand.order,
-    });
-
-    setIsEdit(true);
-
-    toggle();
-  };
 
   var node = useRef();
   const onPaginationPageChange = (page) => {
@@ -477,27 +460,25 @@ const ListBrands = (props) => {
         <Container fluid>
           {/* Render Breadcrumbs */}
 
-          <Breadcrumbs
-            title="Ecommerce"
-            breadcrumbItem="Liste des marques"
-          />
+          <Breadcrumbs title="Ecommerce" breadcrumbItem="Liste des marques" />
 
-            {error.message ? <Alert color="danger">{error.message} :
-                <ul>
-                {error.key.map(  (item, key) =>  
-
-                  <li key={key}> {item['key'][0]}   </li>    )}
-                 
-                </ul>
-
-            </Alert> : null}
+          {error.message ? (
+            <Alert color="danger">
+              {error.message} :
+              <ul>
+                {error.key.map((item, key) => (
+                  <li key={key}> {item["key"][0]} </li>
+                ))}
+              </ul>
+            </Alert>
+          ) : null}
           <Row>
             <Col lg="12">
               <Card>
                 <CardBody>
                   <TableContainer
                     columns={columns}
-                    data={brands}
+                    data={brandList}
                     isGlobalFilter={true}
                     isAddList={true}
                     handleAddNewClick={handleBrandClicks}
@@ -513,7 +494,8 @@ const ListBrands = (props) => {
                         : "Formulaire de création"}
                     </ModalHeader>
                     <ModalBody>
-                      <Form encType="multipart/form-data"
+                      <Form
+                        encType="multipart/form-data"
                         onSubmit={(e) => {
                           e.preventDefault();
                           validation.handleSubmit();
@@ -566,8 +548,8 @@ const ListBrands = (props) => {
                                   {validation.errors.description}
                                 </FormFeedback>
                               ) : null}
-                            </div> 
-                                              
+                            </div>
+
                             <div className="mb-3">
                               <Label className="form-label">Status</Label>
                               <Input
@@ -595,8 +577,7 @@ const ListBrands = (props) => {
                                 </FormFeedback>
                               ) : null}
                             </div>
-                            
-                            
+
                             <div className="mb-3">
                               <Label className="form-label">Featured</Label>
                               <Input
@@ -632,7 +613,6 @@ const ListBrands = (props) => {
                                 type="text"
                                 onChange={validation.handleChange}
                                 onBlur={validation.handleBlur}
-                                
                                 value={validation.values.website || ""}
                                 invalid={
                                   validation.touched.website &&
@@ -649,8 +629,6 @@ const ListBrands = (props) => {
                                 </FormFeedback>
                               ) : null}
                             </div>
-                              
-                          
 
                             <div className="mb-3">
                               <Label className="form-label">Ordre</Label>
@@ -659,7 +637,7 @@ const ListBrands = (props) => {
                                 type="text"
                                 onChange={validation.handleChange}
                                 onBlur={validation.handleBlur}
-                                value={validation.values.order }
+                                value={validation.values.order}
                                 invalid={
                                   validation.touched.order &&
                                   validation.errors.order
@@ -678,10 +656,11 @@ const ListBrands = (props) => {
 
                             <div className="mb-3">
                               <Label className="form-label">Image</Label>
-                              <Input id="image"
+                              <Input
+                                id="image"
                                 name="image"
                                 type="file"
-                                onChange={ imageHandle}
+                                onChange={imageHandle}
                                 onBlur={validation.handleBlur}
                                 // value={validation.values.image || ""}
                                 invalid={
@@ -692,42 +671,47 @@ const ListBrands = (props) => {
                                 }
                               />
                               <FormText>
-                                Pour ajouter ou supprimer # Retélecharger de nouveau #</FormText>
-                            
-                             
+                                Pour ajouter ou supprimer # Retélecharger de
+                                nouveau #
+                              </FormText>
                             </div>
 
-                             <div className="mb-3">
+                            <div className="mb-3">
                               <Label className="form-label">Prévisionnez</Label>
                               <div className="d-flex flex-wrap w-auto gap-3">
-                              {
-                                  url ?
-                                  <img height={200} width={200} src={url} alt="" />
-                                  : ""
-                                }
+                                {url ? (
+                                  <img
+                                    height={200}
+                                    width={200}
+                                    src={url}
+                                    alt=""
+                                  />
+                                ) : (
+                                  ""
+                                )}
                               </div>
                             </div>
-                            
-                            
+
                             <div className="mb-3">
-                              <Label className="form-label">Images par défault</Label>
+                              <Label className="form-label">
+                                Images par défault
+                              </Label>
                               <div className="d-flex flex-wrap w-auto gap-3">
-                              {
-                             
-                             validation.values.url ? 
-                              stringToArray(validation.values.url).map((url_, key) => (
-                                <img key={key} className="img-thumbnail" width={200} src={url_} alt="" />
-                              ))
-
-                              :
-
-                              "Aucun"
-
-                      
-                                }
+                                {validation.values.url
+                                  ? stringToArray(validation.values.url).map(
+                                      (url_, key) => (
+                                        <img
+                                          key={key}
+                                          className="img-thumbnail"
+                                          width={200}
+                                          src={url_}
+                                          alt=""
+                                        />
+                                      )
+                                    )
+                                  : "Aucun"}
                               </div>
                             </div>
-
 
                             <div className="mb-3">
                               <Label className="form-label">Image url</Label>
@@ -736,7 +720,7 @@ const ListBrands = (props) => {
                                 type="text"
                                 onChange={validation.handleChange}
                                 onBlur={validation.handleBlur}
-                                value={validation.values.url }
+                                value={validation.values.url}
                                 invalid={
                                   validation.touched.url &&
                                   validation.errors.url
@@ -752,7 +736,6 @@ const ListBrands = (props) => {
                                 </FormFeedback>
                               ) : null}
                             </div>
-
                           </Col>
                         </Row>
                         <Row>

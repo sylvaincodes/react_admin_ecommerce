@@ -6,6 +6,7 @@ import { GET_PRODUCTS_SUCCESS,GET_PRODUCTS_FAIL,
   UPDATE_PRODUCT_FAIL,
   DELETE_PRODUCT_SUCCESS,
   DELETE_PRODUCT_FAIL,
+  SET_PRODUCT_SUCCESS
  } from "./actionTypes";
 const INIT_STATE = {
     products: [],
@@ -72,6 +73,12 @@ const INIT_STATE = {
           return {
             ...state,
             error: action.payload,
+          }; 
+          
+        case SET_PRODUCT_SUCCESS:
+          return {
+            ...state,
+            product: action.payload,
           };
 
         default:
