@@ -141,7 +141,6 @@ const ListPvariations = (props) => {
     validationSchema: Yup.object({
       price: Yup.string().required("Entrer le prix"),
       stock_status: Yup.string().required("Selectionner"),
-      images: Yup.string().required("Selectionner"),
     }),
     onSubmit: (values) => {
       if (isEdit) {
@@ -640,45 +639,7 @@ const ListPvariations = (props) => {
                       >
                         <Row form="true">
                           <Col xs={12}>
-                            {/* {pattributeList &&
-                              pattributeList.map((item,key) => (
-                                <div className="mb-3" key={key}>
-                                  <Label className="form-label text-capitalize">
-                                    {item.name}
-                                  </Label>
-                                  <Input
-                                    name={`product_attribute_item_id[${key}]`}
-                                    type="select"
-                                    onChange={validation.handleChange}
-                                    onBlur={validation.handleBlur}
-                                    value={validation.values.product_attribute_item_id || ""}
-                                    invalid={
-                                      validation.touched.product_attribute_item_id &&
-                                      validation.errors.product_attribute_item_id
-                                        ? true
-                                        : false
-                                    }
-                                  >
-                                    <option value="">--Selectionner--</option>
-                                    {pattributeItemList &&
-                                      pattributeItemList.map((item_,key_) => (
-                                      
-                                      item.id === item_.product_attribute_id ?
-                                      <option key={key_} value={item_.product_attribute_id}>{item_.slug}({item_.value })</option>
-                                        :
-                                      ""
-                                      ))}
-                                  </Input>
-
-                                  {validation.touched.stock_status &&
-                                  validation.errors.stock_status ? (
-                                    <FormFeedback type="invalid">
-                                      {validation.errors.stock_status}
-                                    </FormFeedback>
-                                  ) : null}
-                                </div>
-                              ))} */}
-
+                            
                             <div className="mb-3">
                               <Label className="form-label">Prix</Label>
                               <Input
@@ -738,19 +699,19 @@ const ListPvariations = (props) => {
                                 type="date"
                                 onChange={validation.handleChange}
                                 onBlur={validation.handleBlur}
-                                value={validation.values.date_fin_discount}
+                                value={validation.values.date_debut_discount}
                                 invalid={
-                                  validation.touched.date_fin_discount &&
-                                  validation.errors.date_fin_discount
+                                  validation.touched.date_debut_discount &&
+                                  validation.errors.date_debut_discount
                                     ? true
                                     : false
                                 }
                               />
 
-                              {validation.touched.date_fin_discount &&
-                              validation.errors.date_fin_discount ? (
+                              {validation.touched.date_debut_discount &&
+                              validation.errors.date_debut_discount ? (
                                 <FormFeedback type="invalid">
-                                  {validation.errors.date_fin_discount}
+                                  {validation.errors.date_debut_discount}
                                 </FormFeedback>
                               ) : null}
                             </div>

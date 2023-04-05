@@ -40,6 +40,10 @@ import {
   setProductSuccess,
 } from "../../../redux/products/actions";
 
+import {getCategoriesSuccess} from "../../../redux/categories/actions";
+import {getBrandsSuccess} from "../../../redux/brands/actions";
+import {getCollectionsSuccess} from "../../../redux/collections/actions";
+
 import { values } from "lodash";
 
 //redux
@@ -198,6 +202,20 @@ const ListProducts = (props) => {
     },
   });
 
+  const getProducts =async () => {
+    await fetch(API_URL + "/products", {
+      headers: {
+        Authorization: "Bearer " + token,
+      },
+    })
+      .then((response) => response.json())
+      .then((array) => {
+        setProductList(array.data);
+        dispatch(getProductsSuccess(array));
+        setIsloading(false);
+      });
+  }
+
   const addProductApi = async (
     category_id,
     collection_id,
@@ -313,16 +331,48 @@ const ListProducts = (props) => {
 
   useEffect(() => {
     setIsloading(true);
-    fetch(API_URL + "/products", {
+    getProducts();
+  }, []);
+
+    useEffect(() => {
+    fetch(API_URL + "/categories", {
       headers: {
         Authorization: "Bearer " + token,
       },
     })
       .then((response) => response.json())
       .then((array) => {
-        setProductList(array.data);
-        dispatch(getProductsSuccess(array));
-        setIsloading(false);
+        dispatch(getCategoriesSuccess(array));
+      });
+  }, []);
+
+
+    useEffect(() => {
+    fetch(API_URL + "/brands", {
+      headers: {
+        Authorization: "Bearer " + token,
+      },
+    })
+      .then((response) => response.json())
+      .then((array) => {
+        // setFilterClothes(array);
+        console.log(array);
+        dispatch(getBrandsSuccess(array));
+      });
+  }, []);
+  
+  
+  useEffect(() => {
+    fetch(API_URL + "/collections", {
+      headers: {
+        Authorization: "Bearer " + token,
+      },
+    })
+      .then((response) => response.json())
+      .then((array) => {
+        // setFilterClothes(array);
+        console.log(array);
+        dispatch(getCollectionsSuccess(array));
       });
   }, []);
 
@@ -528,12 +578,12 @@ const ListProducts = (props) => {
           {error && error.message ? (
             <Alert color="danger">
               {error.message} :
-              {/* <ul>
+              <ul>
                 {error.key.map(  (item, key) =>  
 
                   <li key={key}> {item['key'][0]}   </li>    )}
                  
-                </ul> */}
+                </ul>
             </Alert>
           ) : null}
 
