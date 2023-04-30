@@ -72,9 +72,10 @@ const ListPvariations = (props) => {
   const [url, setUrl] = useState([]);
 
   const imageHandle = (e) => {
+    // setIsloading(true);
     const file = e.target;
     setImages(file.files);
-
+    
     if (images == null) {
       return;
     } else {
@@ -85,14 +86,13 @@ const ListPvariations = (props) => {
         const imageRef = ref(storage, `media/products/${image.name + v4()}`);
         uploadBytes(imageRef, image).then((data) => {
           getDownloadURL(data.ref).then((url) => {
-            setIsloading(true);
             array.push({ url: url });
-            setIsloading(false);
           });
         });
       });
       setUrl(array);
     }
+    // setIsloading(false);
   };
 
   const [isEdit, setIsEdit] = useState(false);
@@ -119,7 +119,6 @@ const ListPvariations = (props) => {
     dispatch(setPvariationSuccess(arg));
   };
 
-  //validation
   const validation = useFormik({
     //enableReinitialize : use this flag when initial values needs to be changed
     enableReinitialize: true,
@@ -178,6 +177,8 @@ const ListPvariations = (props) => {
           updatePvariation.wide,
           updatePvariation.height,
           updatePvariation.url,
+          updatePvariation.product_id,
+          
         );
       } else {
         const newPvariation = {
@@ -190,7 +191,7 @@ const ListPvariations = (props) => {
           lenght: values["lenght"],
           wide: values["wide"],
           height: values["height"],
-          url: url,
+          url: url.length==0 ? values["url"] : url ,
           product_id: products.product.id,     
         };
         // save new pvariation
@@ -931,8 +932,7 @@ const ListPvariations = (props) => {
                             <div className="mb-3">
                               <Label className="form-label">Url</Label>
                               <Input
-                                placeholder="A ne pas renseigner"
-                                readOnly
+                                placeholder=""                               
                                 name="url"
                                 type="text"
                                 onChange={validation.handleChange}

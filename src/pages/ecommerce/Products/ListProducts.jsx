@@ -76,7 +76,8 @@ const ListProducts = (props) => {
   }));
 
   const imageHandle = (e) => {
-    
+    setIsloading(true);
+
     const file = e.target;
     setImages(file.files);
     
@@ -91,15 +92,14 @@ const ListProducts = (props) => {
         const imageRef = ref(storage, `media/products/${image.name + v4()}`);
         uploadBytes(imageRef, image).then((data) => {
           getDownloadURL(data.ref).then((url) => {
-            setIsloading(true);
             array.push({ url : url })
-            setIsloading(false);  
           });
         });
         
       });
       setUrl(array);
     }
+    setIsloading(false);  
   };
   
   //validation
@@ -175,7 +175,7 @@ const ListProducts = (props) => {
           status: values["status"],
           content: values["content"],
           images: images,
-          url: url,
+          url: url.length==0 ? values['url'] : url ,
         };
 
         // save new product
@@ -916,8 +916,8 @@ const ListProducts = (props) => {
                             <div className="mb-3">
                               <Label className="form-label">Url</Label>
                               <Input
-                              placeholder="A ne pas renseigner"
-                                readOnly
+                                placeholder=""
+                                
                                 name="url"
                                 type="text"
                                 onChange={validation.handleChange}

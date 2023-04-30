@@ -6,6 +6,7 @@ export default function LoadingSpinner(props) {
     <div className={ props.isloading ? "spinner-container" : "spinner-container  d-none"} >
       <div className="loading-spinner">
         <img src={loading} alt="loading gif"/>
+        <strong>Patientez....</strong>
       </div>
     </div>
   );

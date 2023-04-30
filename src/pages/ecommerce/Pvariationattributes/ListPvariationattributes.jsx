@@ -223,7 +223,7 @@ const ListPvariationattributes = (props) => {
       });
   };
 
-  const [productList, setPvariationattributeList] = useState([]);
+  const [pvariationattributeList, setPvariationattributeList] = useState([]);
   const [modal, setModal] = useState(false);
   const [isEdit, setIsEdit] = useState(false);
 
@@ -436,7 +436,7 @@ const ListPvariationattributes = (props) => {
 
                   <TableContainer
                     columns={columns}
-                    data={productList}
+                    data={pvariationattributeList}
                     isGlobalFilter={true}
                     isAddList={true}
                     handleAddNewClick={handlePvariationattributeClicks}
@@ -488,30 +488,7 @@ const ListPvariationattributes = (props) => {
                                   </Input>
 
                                   
-                                </div>
-{/* 
-                            <div className="mb-3">
-                              <Label className="form-label">Attribut id</Label>
-                              <Input
-                                name="product_attribute_item_id"
-                                type="text"
-                                onChange={validation.handleChange}
-                                onBlur={validation.handleBlur}
-                                value={validation.values.product_attribute_item_id || ""}
-                                invalid={
-                                  validation.touched.product_attribute_item_id &&
-                                  validation.errors.product_attribute_item_id
-                                    ? true
-                                    : false
-                                }
-                              />
-                              {validation.touched.product_attribute_item_id &&
-                              validation.errors.product_attribute_item_id ? (
-                                <FormFeedback type="invalid">
-                                  {validation.errors.product_attribute_item_id}
-                                </FormFeedback>
-                              ) : null}
-                            </div> */}
+                             </div>
 
                             <div className="mb-3">
                                   <Label className="form-label text-capitalize">

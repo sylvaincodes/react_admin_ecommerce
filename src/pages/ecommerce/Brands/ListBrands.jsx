@@ -66,6 +66,7 @@ const ListBrands = (props) => {
   }));
 
   const imageHandle = (e) => {
+    setIsloading(true);
     const file = e.target;
     // setImage(file.files[0]);
     if (file.files[0] == null) {
@@ -77,12 +78,11 @@ const ListBrands = (props) => {
       );
       uploadBytes(imageRef, file.files[0]).then((data) => {
         getDownloadURL(data.ref).then((url) => {
-          setIsloading(true);
           setUrl(url);
-          setIsloading(false);
         });
       });
     }
+    setIsloading(false);
   };
 
   //validation
