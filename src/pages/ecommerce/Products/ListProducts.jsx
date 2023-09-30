@@ -49,7 +49,7 @@ import { values } from "lodash";
 //redux
 import { useSelector, useDispatch } from "react-redux";
 import LoadingSpinner from "../../../components/Loading/LoadingSpinner";
-import { errorsInArray, stringToArray } from "../../../helpers/functions";
+import { ArrayToString, errorsInArray, stringToArray } from "../../../helpers/functions";
 import { storage } from "../../../helpers/firebase";
 import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
 import { v4 } from "uuid";
@@ -79,7 +79,13 @@ const ListProducts = (props) => {
     setIsloading(true);
 
     const file = e.target;
-    setImages(file.files);
+    // setImages(file.files);
+    // const imageConcat = [];
+    // Object.keys(file.files).forEach(key => {
+    //   let image = e.target.files[key];
+    //    imageConcat.push(v4())
+    //   });
+      // setImages(ArrayToString(imageConcat))
     
     if (images == null) {
       return;
@@ -87,7 +93,7 @@ const ListProducts = (props) => {
 
       const array = [];
 
-      Object.keys(e.target.files).forEach(key => {
+      Object.keys(file.files).forEach(key => {
         let image = e.target.files[key];
         const imageRef = ref(storage, `media/products/${image.name + v4()}`);
         uploadBytes(imageRef, image).then((data) => {
@@ -101,7 +107,7 @@ const ListProducts = (props) => {
     }
     setIsloading(false);  
   };
-  
+
   //validation
   const validation = useFormik({
     //enableReinitialize : use this flag when initial values needs to be changed
@@ -228,14 +234,29 @@ const ListProducts = (props) => {
     images,
     url
   ) => {
+
+    // const data = new FormData();
+    // data.append("images", images);
+    // data.append("category_id", category_id);
+    // data.append("collection_id", collection_id);
+    // data.append("name", name);
+    // data.append("brand_id", brand_id);
+    // data.append("description", description);
+    // data.append("quantity", quantity);
+    // data.append("status", status);
+    // data.append("content", content);
+    // data.append("url", url);
+
     await fetch(API_URL + "/products", {
       method: "POST",
       headers: {
         Authorization: "Bearer " + token,
         "Content-type": "application/json",
       },
-      body: JSON.stringify({
+      body: 
+      JSON.stringify({
         category_id: category_id,
+        collection_id: collection_id,
         name: name,
         brand_id: brand_id,
         description: description,
@@ -245,6 +266,7 @@ const ListProducts = (props) => {
         images: images,
         url: url,
       }),
+      // data
     })
       .then((response) => response.json())
       .then((data) => {
@@ -342,7 +364,7 @@ const ListProducts = (props) => {
     })
       .then((response) => response.json())
       .then((array) => {
-        dispatch(getCategoriesSuccess(array));
+        dispatch(getCategoriesSuccess(array.data));
       });
   }, []);
 
@@ -356,8 +378,7 @@ const ListProducts = (props) => {
       .then((response) => response.json())
       .then((array) => {
         // setFilterClothes(array);
-        console.log(array);
-        dispatch(getBrandsSuccess(array));
+        dispatch(getBrandsSuccess(array.data));
       });
   }, []);
   
@@ -370,9 +391,7 @@ const ListProducts = (props) => {
     })
       .then((response) => response.json())
       .then((array) => {
-        // setFilterClothes(array);
-        console.log(array);
-        dispatch(getCollectionsSuccess(array));
+        dispatch(getCollectionsSuccess(array.data));
       });
   }, []);
 

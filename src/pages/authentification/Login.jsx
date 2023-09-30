@@ -35,7 +35,7 @@ const Login = (props) => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (localStorage.getItem("user")) {
+    if (localStorage.getItem("user") || localStorage.getItem("user") ) {
       navigate("/dashboard");
     }
   }, [navigate]);
@@ -49,6 +49,7 @@ const Login = (props) => {
   const loginAuth = async (email, password) => {
     await fetch(API_URL + "/login", {
       method: "POST",
+      // mode: 'no-cors',
       body: JSON.stringify({
         email: email,
         password: password,
@@ -59,8 +60,10 @@ const Login = (props) => {
     })
       .then((response) => response.json())
       .then((data) => {
+       
         if (data.status === 200) {
           localStorage.setItem("user", JSON.stringify(data));
+          sessionStorage.setItem("user", JSON.stringify(data));
           dispatch(loginSuccess(data.user));
           navigate("/");
         } else {
@@ -70,8 +73,8 @@ const Login = (props) => {
         }
         setIsloading(false);
       })
-      .catch(() => {
-        dispatch(loginFailure("Serveur indisponible"));
+      .catch((e) => {
+        dispatch(loginFailure(e));
       });
   };
 

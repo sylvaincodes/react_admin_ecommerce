@@ -105,7 +105,9 @@ const ListCollections = (props) => {
       is_featured: (collection && collection.is_featured) || "",
       image: (collection && collection.image) || {},
       order: (collection && collection.order) || "0",
-      url: (collection && collection.url) || ""
+      url: (collection && collection.url) || "",
+      parent_id: (collection && collection.parent_id) || "",
+      link: (collection && collection.link) || ""
     },
     validationSchema: Yup.object({
       name: Yup.string().required("Entrer le libelle"),
@@ -125,6 +127,8 @@ const ListCollections = (props) => {
           image: image,
           order: values.order,
           url: url.trim().length==0 ? values.url : url ,
+          parent_id: values.parent_id,
+          link: values.link,
         };
 
         //  console.log(updateCollection);
@@ -143,7 +147,9 @@ const ListCollections = (props) => {
           updateCollection.is_featured,
           updateCollection.image,
           updateCollection.order,
-          updateCollection.url
+          updateCollection.url,
+          updateCollection.parent_id,
+          updateCollection.link
         );
 
       } else {
@@ -156,7 +162,9 @@ const ListCollections = (props) => {
           is_featured: values.is_featured,
           image:  image,
           order: values["order"],
-          url: url
+          url: url,
+          parent_id: values['parent_id'],
+          link: values['link']
         };
         // save new collection
 
@@ -171,7 +179,9 @@ const ListCollections = (props) => {
           newCollection.is_featured,
           newCollection.image,
           newCollection.order,
-          newCollection.url
+          newCollection.url,
+          newCollection.parent_id,
+          newCollection.link,
         );
         validation.resetForm();
       }
@@ -187,7 +197,9 @@ const ListCollections = (props) => {
     is_featured,
     image,
     order,
-    url
+    url,
+    parent_id,
+    link
   ) => {
     await fetch(API_URL + "/collections", {
       method: "POST",
@@ -204,6 +216,8 @@ const ListCollections = (props) => {
         image: image,
         order: order,
         url: url,
+        parent_id: parent_id,
+        link: link,
       }),
     })
       .then((response) => response.json())
@@ -243,7 +257,9 @@ const ListCollections = (props) => {
     is_featured,
     image,
     order,
-    url
+    url,
+    parent_id,
+    link
   ) => {
 
     await fetch(API_URL + "/collections/" + collection.id, {
@@ -262,6 +278,8 @@ const ListCollections = (props) => {
         image: image,
         order: order,
         url: url,
+        parent_id: parent_id,
+        link: link,
       }),
       
     })
@@ -288,9 +306,8 @@ const ListCollections = (props) => {
     })
       .then((response) => response.json())
       .then((array) => {
-        setCollectionList(array);
-        console.log(array);
-        dispatch(getCollectionsSuccess(array));
+        setCollectionList(array.data);
+        dispatch(getCollectionsSuccess(array.data));
       });
     }, [dispatch]);
     
@@ -407,6 +424,8 @@ const ListCollections = (props) => {
       is_featured: collection.is_featured,
       image: collection.image,
       order: collection.order,
+      parent_id: collection.parent_id,
+      link: collection.link,
     });
 
     setIsEdit(true);
@@ -553,6 +572,40 @@ const ListCollections = (props) => {
                                 </FormFeedback>
                               ) : null}
                             </div> 
+
+
+                            <div className="mb-3">
+                              <Label className="form-label">Parent</Label>
+                              <Input
+                                name="parent_id"
+                                type="select"
+                                onChange={validation.handleChange}
+                                onBlur={validation.handleBlur}
+                                value={validation.values.parent_id || ""}
+                                invalid={
+                                  validation.touched.parent_id &&
+                                  validation.errors.parent_id
+                                    ? true
+                                    : false
+                                }
+                              >
+                                <option value="0">--Selectionner--</option>
+                                {collections &&
+                                  collections.map((col) => (
+                                    <option { ...col.id == values.parent_id ? 'selected' : ""}  key={col.id} value={col.id}>
+                                      {col.name}
+                                    </option>
+                                  ))}
+                              </Input>
+
+                              {validation.touched.parent_id &&
+                              validation.errors.parent_id ? (
+                                <FormFeedback type="invalid">
+                                  {validation.errors.parent_id}
+                                </FormFeedback>
+                              ) : null}
+                            </div>
+
                                               
                             <div className="mb-3">
                               <Label className="form-label">Status</Label>
@@ -611,6 +664,8 @@ const ListCollections = (props) => {
                               ) : null}
                             </div>
 
+
+
                             <div className="mb-3">
                               <Label className="form-label">Slug</Label>
                               <Input
@@ -633,6 +688,31 @@ const ListCollections = (props) => {
                               validation.errors.slug ? (
                                 <FormFeedback type="invalid">
                                   {validation.errors.slug}
+                                </FormFeedback>
+                              ) : null}
+                            </div>
+
+
+                            <div className="mb-3">
+                              <Label className="form-label">Link</Label>
+                              <Input
+                                name="link"
+                                type="text"
+                                onChange={validation.handleChange}
+                                onBlur={validation.handleBlur}
+                                value={validation.values.link }
+                                invalid={
+                                  validation.touched.link &&
+                                  validation.errors.link
+                                    ? true
+                                    : false
+                                }
+                              />
+
+                              {validation.touched.link &&
+                              validation.errors.link ? (
+                                <FormFeedback type="invalid">
+                                  {validation.errors.link}
                                 </FormFeedback>
                               ) : null}
                             </div>

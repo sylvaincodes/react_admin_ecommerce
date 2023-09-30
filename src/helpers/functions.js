@@ -20,3 +20,9 @@ export const stringToArray = (myString) => {
   array = array.filter( item => item !== "" )
   return array;
 };
+
+
+export const ArrayToString = (array) => {
+  
+  return array.toString();
+};

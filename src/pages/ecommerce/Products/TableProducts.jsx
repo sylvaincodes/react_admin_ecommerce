@@ -78,7 +78,7 @@ const TableProducts = (props) => {
       .then((response) => response.json())
       .then((array) => {
         // setFilterClothes(array);
-        console.log(array);
+        // console.log(array);
         dispatch(getCategoriesSuccess(array));
       });
   }, []);

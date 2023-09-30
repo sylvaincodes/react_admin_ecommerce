@@ -43,7 +43,6 @@ export const API_URL = "http://localhost:8000/api";
 export const BASE_URL = "http://localhost:8000/";
 export const token = JSON.parse(localStorage.getItem("user")) ?  JSON.parse(localStorage.getItem("user")).token : "";
 
-
 export const discountData = [
   { label: "Moins de 0%", value: 0 },
   { label: "10% ou plus", value: 10 },

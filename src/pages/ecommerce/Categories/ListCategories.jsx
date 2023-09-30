@@ -318,9 +318,9 @@ const ListCategories = (props) => {
       },
     })
       .then((response) => response.json())
-      .then((array) => {
-        setCategoryList(array);
-        dispatch(getCategoriesSuccess(array));
+      .then((result) => {
+        setCategoryList(result.data);
+        dispatch(getCategoriesSuccess(result.data));
       });
   }, [dispatch]);
 

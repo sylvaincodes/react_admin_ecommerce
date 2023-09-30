@@ -1,7 +1,7 @@
 import React from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 
-// // Import all aroutes here
+// Import all aroutes here
 import { publicRoutes, authProtectedRoutes } from "./routes";
 import Authmiddleware from "./routes/route";
 
