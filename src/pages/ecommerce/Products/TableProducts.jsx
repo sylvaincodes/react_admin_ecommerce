@@ -58,7 +58,7 @@ const TableProducts = (props) => {
   const [deleteModal, setDeleteModal] = useState(false);
 
   const error = useSelector((state) => state.products.error);
-  
+
   const imageHandle = (e) =>  {
     const file = e.target
     setImage(file.files[0]);

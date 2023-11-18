@@ -55,13 +55,13 @@ const Login = (props) => {
         password: password,
       }),
       headers: {
-        "Content-type": "application/json",
+        "Content-Type": "application/json",
       },
     })
       .then((response) => response.json())
       .then((data) => {
-       
-        if (data.status === 200) {
+        console.log(data);
+        if (data.status === "success") {
           localStorage.setItem("user", JSON.stringify(data));
           sessionStorage.setItem("user", JSON.stringify(data));
           dispatch(loginSuccess(data.user));

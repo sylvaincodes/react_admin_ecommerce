@@ -39,18 +39,12 @@ import french from "../assets/images/flags/french.jpg";
 //Languages
 import * as RiIcons from "react-icons/ri";
 
-export const API_URL = "http://localhost:8000/api";
-export const BASE_URL = "http://localhost:8000/";
-export const token = JSON.parse(localStorage.getItem("user")) ?  JSON.parse(localStorage.getItem("user")).token : "";
-
-export const discountData = [
-  { label: "Moins de 0%", value: 0 },
-  { label: "10% ou plus", value: 10 },
-  { label: "20% ou plus", value: 20 },
-  { label: "30% ou plus", value: 30 },
-  { label: "40% ou plus", value: 40 },
-  { label: "50% ou plus", value: 50 },
-];
+export const API_URL =
+  "https://laravelapiecommerce.000webhostapp.com/public/api";
+export const BASE_URL = "https://laravelapiecommerce.000webhostapp.com/public/";
+export const token = JSON.parse(localStorage.getItem("user"))
+  ? JSON.parse(localStorage.getItem("user")).token
+  : "";
 
 export const productsData = [
   {
@@ -313,7 +307,7 @@ export const SidebarData = [
   {
     title: "Ecommerce",
     path: "#",
-    status:"published",
+    status: "published",
     icon: <i className="fa fa-shopping-bag"></i>,
     iconClosed: <RiIcons.RiArrowUpSFill className="ms-auto fa fa-arrow-up" />,
     iconOpened: (
@@ -332,7 +326,7 @@ export const SidebarData = [
       {
         title: "Categorie de produits",
         path: "/ecommerce/categories",
-      }, 
+      },
       {
         title: "Marque de produits",
         path: "/ecommerce/brands",
@@ -389,7 +383,7 @@ export const SidebarData = [
   {
     title: "Utilisateurs",
     path: "#",
-    status:"published",
+    status: "published",
     icon: <i className="fa fa-user"></i>,
     iconClosed: <RiIcons.RiArrowUpSFill className="ms-auto fa fa-arrow-up" />,
     iconOpened: (
@@ -398,16 +392,16 @@ export const SidebarData = [
 
     subNav: [
       {
-        title: "Comptes", 
+        title: "Comptes",
         path: "/users/list",
       },
     ],
   },
-  
+
   {
     title: "Paramètres",
     path: "#",
-    status:"published",
+    status: "published",
     icon: <i className="fa fa-key"></i>,
     iconClosed: <RiIcons.RiArrowUpSFill className="ms-auto fa fa-arrow-up" />,
     iconOpened: (
@@ -419,7 +413,7 @@ export const SidebarData = [
         title: "Slides",
         path: "/parametres/slides/list",
       },
-      
+
       {
         title: "Slides Items",
         path: "/parametres/slides/items/list",

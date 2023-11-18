@@ -16,6 +16,8 @@ const ProfilMenu = () => {
     const logoutApi = async (
         
       ) => {
+        localStorage.removeItem('user');
+        window.location.reload(true);
         await fetch(API_URL+"/logout", {
           method: "POST",
           headers: {
