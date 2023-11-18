@@ -40,8 +40,9 @@ import french from "../assets/images/flags/french.jpg";
 import * as RiIcons from "react-icons/ri";
 
 export const API_URL =
-  "https://laravelapiecommerce.000webhostapp.com/public/api";
-export const BASE_URL = "https://laravelapiecommerce.000webhostapp.com/public/";
+  "https://private-70256-laravelecommerce.apiary-proxy.com/public/api";
+export const BASE_URL =
+  "https://private-70256-laravelecommerce.apiary-proxy.com/public/api/public/";
 export const token = JSON.parse(localStorage.getItem("user"))
   ? JSON.parse(localStorage.getItem("user")).token
   : "";
