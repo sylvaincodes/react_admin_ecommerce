@@ -1,5 +1,6 @@
 import React from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { Toaster } from "react-hot-toast";
 
 // Import all aroutes here
 import { publicRoutes, authProtectedRoutes } from "./routes";
@@ -32,6 +33,7 @@ const App = () => {
           ))}
         </Routes>
       </Router>
+      <Toaster position="top-center" reverseOrder={false} />
     </React.Fragment>
   );
 };

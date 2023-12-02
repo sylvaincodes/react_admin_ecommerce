@@ -156,7 +156,7 @@ const ListCategories = (props) => {
           is_featured: values["is_featured"],
           is_default: values["is_default"],
           image: image,
-          url: url,
+          url: url ? url : values["url"],
           link: values["link"],
         };
         // save new category
@@ -199,6 +199,7 @@ const ListCategories = (props) => {
     link
   ) => {
     await fetch(API_URL + "/categories", {
+      mode: "cors",
       method: "POST",
       headers: {
         Authorization: "Bearer " + token,

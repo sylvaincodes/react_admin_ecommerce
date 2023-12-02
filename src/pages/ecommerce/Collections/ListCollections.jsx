@@ -162,7 +162,7 @@ const ListCollections = (props) => {
           is_featured: values.is_featured,
           image:  image,
           order: values["order"],
-          url: url,
+          url: url ? url : values["url"],
           parent_id: values['parent_id'],
           link: values['link']
         };

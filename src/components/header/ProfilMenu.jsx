@@ -16,21 +16,18 @@ const ProfilMenu = () => {
     const logoutApi = async (
         
       ) => {
-        localStorage.removeItem('user');
-        window.location.reload(true);
+        
         await fetch(API_URL+"/logout", {
           method: "POST",
           headers: {
             Authorization: "Bearer " + token
           },
         })
-          .then((response) => response.json())
-          .then((data) => {
-            if (data.status === 200) {
+        .then((response) => {
+          if (response.status===200) {
               localStorage.removeItem('user');
               dispatch(logoutRequest());
               navigate("/login");
-            } else {
             }
           })
           .catch((e) => {
@@ -63,12 +60,11 @@ const ProfilMenu = () => {
 
                         </div>
 
-                        <Link onClick={() => logoutApi()} className='text-reset'>
-                            <div className='d-flex gap-3 align-items-center fw-lighter'>
+                        <button onClick={logoutApi} 
+                                className='btn btn-outline-light d-flex gap-3 align-items-center fw-lighter text-reset'>
                                 <i className='text-danger fa fa-power-off'></i>
                                 Se déconnecter
-                            </div>
-                        </Link>
+                        </button>
 
                     </div>
                 </DropdownMenu>

@@ -39,11 +39,12 @@ import french from "../assets/images/flags/french.jpg";
 //Languages
 import * as RiIcons from "react-icons/ri";
 
+// export const API_URL = "http://127.0.0.1:8000/api";
 export const API_URL =
-  "https://private-70256-laravelecommerce.apiary-proxy.com/public/api";
+"https://private-70256-laravelecommerce.apiary-proxy.com/public/api";
 export const BASE_URL =
   "https://private-70256-laravelecommerce.apiary-proxy.com/public/api/public/";
-export const token = JSON.parse(localStorage.getItem("user"))
+export const token = localStorage.getItem("user")
   ? JSON.parse(localStorage.getItem("user")).token
   : "";
 

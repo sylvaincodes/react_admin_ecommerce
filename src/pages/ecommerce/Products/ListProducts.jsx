@@ -76,7 +76,7 @@ const ListProducts = (props) => {
   }));
 
   const imageHandle = (e) => {
-    setIsloading(true);
+    // setIsloading(true);
 
     const file = e.target;
     // setImages(file.files);
@@ -105,7 +105,7 @@ const ListProducts = (props) => {
       });
       setUrl(array);
     }
-    setIsloading(false);  
+
   };
 
   //validation
@@ -203,24 +203,25 @@ const ListProducts = (props) => {
           newProduct.url
         );
         validation.resetForm();
+        setIsloading(false);
       }
       toggle();
     },
   });
 
-  const getProducts =async () => {
-    await fetch(API_URL + "/products", {
-      headers: {
-        Authorization: "Bearer " + token,
-      },
-    })
-      .then((response) => response.json())
-      .then((array) => {
-        setProductList(array.data);
-        dispatch(getProductsSuccess(array));
-        setIsloading(false);
-      });
-  }
+  // const getProducts = async () => {
+  //   await fetch(API_URL + "/products", {
+  //     headers: {
+  //       Authorization: "Bearer " + token,
+  //     },
+  //   })
+  //     .then((response) => response.json())
+  //     .then((response) => {
+  //       setProductList(response.data);
+  //       dispatch(getProductsSuccess(response.data));
+  //       setIsloading(false);
+  //     });
+  // }
 
   const addProductApi = async (
     category_id,
@@ -351,12 +352,27 @@ const ListProducts = (props) => {
   const [modal, setModal] = useState(false);
   const [isEdit, setIsEdit] = useState(false);
 
-  useEffect(() => {
-    setIsloading(true);
-    getProducts();
-  }, []);
+  // useEffect(() => {
+  //   setIsloading(true);
+  //   getProducts();
+  // }, []);
 
     useEffect(() => {
+    fetch(API_URL + "/products", {
+      headers: {
+        Authorization: "Bearer " + token,
+      },
+    })
+      .then((response) => response.json())
+      .then((response) => {
+        setProductList(response.data);
+        dispatch(getProductsSuccess(response));
+        setIsloading(false);
+      });
+  }, [dispatch]);
+
+
+  useEffect(() => {
     fetch(API_URL + "/categories", {
       headers: {
         Authorization: "Bearer " + token,

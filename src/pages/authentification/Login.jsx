@@ -15,6 +15,7 @@ import {
   Row,
   Alert,
 } from "reactstrap";
+import toast from "react-hot-toast";
 
 import login_header from "../../assets/images/profile-img.png";
 import logo from "../../assets/images/logo.svg";
@@ -59,14 +60,13 @@ const Login = (props) => {
       },
     })
       .then((response) => response.json())
-      .then((data) => {
-        console.log(data);
+      .then((data) => {        
         if (data.status === "success") {
           localStorage.setItem("user", JSON.stringify(data));
-          sessionStorage.setItem("user", JSON.stringify(data));
           dispatch(loginSuccess(data.user));
           navigate("/");
         } else {
+          toast.error(data.message);
           dispatch(
             loginFailure({ message: data.message, key: data.errors.key })
           );
@@ -76,6 +76,7 @@ const Login = (props) => {
       .catch((e) => {
         dispatch(loginFailure(e));
       });
+       setIsloading(false);
   };
 
   const loginValidation = useFormik({

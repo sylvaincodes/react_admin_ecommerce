@@ -150,11 +150,7 @@ const ListBrands = (props) => {
           order: values["order"],
           url: url,
         };
-        // save new brand
-
-        //     console.log(newBrand);
-        //  return false;
-
+      
         setIsloading(true);
         dispatch(onAddNewBrand(newBrand));
         addBrandApi(
@@ -189,6 +185,7 @@ const ListBrands = (props) => {
         Authorization: "Bearer " + token,
         "Content-type": "application/json",
       },
+      mode: 'cors',
       body: JSON.stringify({
         name: name,
         description: description,
@@ -246,6 +243,7 @@ const ListBrands = (props) => {
         Authorization: "Bearer " + token,
         "Content-type": "application/json",
       },
+      mode: 'cors',
       body: JSON.stringify({
         name: name,
         description: description,
@@ -272,7 +270,6 @@ const ListBrands = (props) => {
         setIsloading(true);
       });
   };
-
 
   const handleBrandClick = (arg) => {
     const brand = arg;
@@ -301,9 +298,9 @@ const ListBrands = (props) => {
       },
     })
       .then((response) => response.json())
-      .then((array) => {
-        setBrandList(array);
-        dispatch(getBrandsSuccess(array));
+      .then((result) => {
+        setBrandList(result);
+        dispatch(getBrandsSuccess(result.data));
       });
   }, [dispatch]);
 
