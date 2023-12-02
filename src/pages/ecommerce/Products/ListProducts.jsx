@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState, useRef, useMemo } from "react";
 import { Link } from "react-router-dom";
 import TableContainer from "../../../components/tables/TableContainer";
@@ -24,9 +25,8 @@ import { useFormik } from "formik";
 import { Name } from "./ListProductsCol";
 import Breadcrumbs from "../../../components/breadcrumbs/Breadcrumb";
 import DeleteModal from "../../../components/modals/DeleteModal";
-import { API_URL, BASE_URL, productsData, token } from "../../../data";
+import { API_URL, BASE_URL, token } from "../../../data";
 import {
-  getProducts as onGetProducts,
   addNewProduct as onAddNewProduct,
   updateProduct as onUpdateProduct,
   deleteProduct as onDeleteProduct,
@@ -36,7 +36,6 @@ import {
   updateProductSuccess,
   updateProductFail,
   deleteProductSuccess,
-  deleteProductFail,
   setProductSuccess,
 } from "../../../redux/products/actions";
 
@@ -49,7 +48,7 @@ import { values } from "lodash";
 //redux
 import { useSelector, useDispatch } from "react-redux";
 import LoadingSpinner from "../../../components/Loading/LoadingSpinner";
-import { ArrayToString, errorsInArray, stringToArray } from "../../../helpers/functions";
+import { errorsInArray, stringToArray } from "../../../helpers/functions";
 import { storage } from "../../../helpers/firebase";
 import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
 import { v4 } from "uuid";
@@ -65,6 +64,9 @@ const ListProducts = (props) => {
   // const [imagesList, setImageslist] = useState();
   const dispatch = useDispatch();
   const [product, setProduct] = useState();
+  const [productList, setProductList] = useState([]);
+  const [modal, setModal] = useState(false);
+  const [isEdit, setIsEdit] = useState(false);
 
   const error = useSelector((state) => state.products.error);
 
@@ -74,6 +76,7 @@ const ListProducts = (props) => {
     categories: state.categories.categories,
     collections: state.collections.collections,
   }));
+
 
   const imageHandle = (e) => {
     // setIsloading(true);
@@ -106,6 +109,10 @@ const ListProducts = (props) => {
       setUrl(array);
     }
 
+  };
+
+  const toggle = () => {
+    setModal(!modal);
   };
 
   //validation
@@ -146,7 +153,7 @@ const ListProducts = (props) => {
           content: values.content,
           status: values.status,
           images: images,
-          url: url.length==0 ? values.url : url ,
+          url: url.length===0 ? values.url : url ,
         };
 
         //update product
@@ -181,7 +188,7 @@ const ListProducts = (props) => {
           status: values["status"],
           content: values["content"],
           images: images,
-          url: url.length==0 ? values['url'] : url ,
+          url: url.length===0 ? values['url'] : url ,
         };
 
         // save new product
@@ -208,20 +215,6 @@ const ListProducts = (props) => {
       toggle();
     },
   });
-
-  // const getProducts = async () => {
-  //   await fetch(API_URL + "/products", {
-  //     headers: {
-  //       Authorization: "Bearer " + token,
-  //     },
-  //   })
-  //     .then((response) => response.json())
-  //     .then((response) => {
-  //       setProductList(response.data);
-  //       dispatch(getProductsSuccess(response.data));
-  //       setIsloading(false);
-  //     });
-  // }
 
   const addProductApi = async (
     category_id,
@@ -272,9 +265,10 @@ const ListProducts = (props) => {
       .then((response) => response.json())
       .then((data) => {
         setIsloading(false);
-        if (data.status == 201) {
+        if (data.status === "success") {
           dispatch(addProductSuccess(data.product));
           setUrl("");
+          setImages("");
         } else {
           dispatch(
             addProductFail({ message: data.message, key: errorsInArray(data) })
@@ -282,8 +276,8 @@ const ListProducts = (props) => {
         }
       })
       .catch((e) => {
-        setIsloading(true);
       });
+      setIsloading(true);
   };
 
   const deleteProductApi = async (product) => {
@@ -293,7 +287,6 @@ const ListProducts = (props) => {
         Authorization: "Bearer " + token,
       },
     }).then((response) => {
-      const data = response.json();
       setIsloading(false);
       dispatch(deleteProductSuccess(product));
       setUrl("");
@@ -348,27 +341,162 @@ const ListProducts = (props) => {
       });
   };
 
-  const [productList, setProductList] = useState([]);
-  const [modal, setModal] = useState(false);
-  const [isEdit, setIsEdit] = useState(false);
+    // eslint-disable-next-line
+    const columns = useMemo(
+      () => 
+      {
+        const handleProductClick = (arg) => {
+          const product = arg;
+      
+          setProduct({
+            id: product.id,
+            name: product.name,
+            brand_id: product.brand_id,
+            description: product.description,
+            category_id: product.category_id,
+            collection_id: product.collection_id,
+            status: product.status,
+            quantity: product.quantity,
+            content: product.content,
+            images: product.images,
+            url: product.url,
+          });
+      
+          setIsEdit(true);
+      
+          setModal(!modal);
+        }; 
+        const handleSetProduct = (arg) => {
+          dispatch(setProductSuccess(arg));
+        }; 
+  
+      return [
+        {
+          Header: "#",
+          Cell: () => {
+            return <input type="checkbox" />;
+          },
+        },
+        {
+          Header: "Thumball",
+          // accessor: "image",
+          disableFilters: true,
+          filterable: false,
+  
+          accessor: (cellProps) => (
+            <>
+              {!cellProps.url ? (
+                <div className="avatar-xs">
+                  <span className="avatar-title rounded-circle">
+                    {cellProps.name.charAt(0)}
+                  </span>
+                </div>
+              ) : (
+                <div>
+                  <img
+                    className="rounded-circle avatar-xs"
+                    src={ cellProps.url ? cellProps.url :  BASE_URL+'media/products/'+cellProps.image}
+                    alt=""
+                  />
+                </div>
+              )}
+            </>
+          ),
+        },
+        {
+          Header: "Produit",
+          accessor: "name",
+          filterable: true,
+          Cell: (cellProps) => {
+            return <Name {...cellProps} />;
+          },
+        },
+        {
+          Header: "Catégorie",
+          accessor: "category",
+          filterable: true,
+          Cell: (cellProps) => {
+            return <Name {...cellProps} />;
+          },
+        },
+        {
+          Header: "Description",
+          accessor: "description",
+          filterable: true,
+          Cell: (cellProps) => {
+            return <Name {...cellProps} />;
+          },
+        },
+        {
+          Header: "Action",
+          Cell: (cellProps) => {
+            return (
+              <div className="d-flex gap-3">
+                <Link
+                  to="#"
+                  className="text-success"
+                  onClick={() => {
+                    const data = cellProps.row.original;
+                    handleProductClick(data);
+                  }}
+                >
+                  <i className="mdi mdi-pencil font-size-18" id="edittooltip" />
+                  <UncontrolledTooltip placement="top" target="edittooltip">
+                    Modifier
+                  </UncontrolledTooltip>
+                </Link>
+                <Link
+                  to="#"
+                  className="text-danger"
+                  onClick={() => {
+                    const data = cellProps.row.original;
+                    onClickDelete(data);
+                  }}
+                >
+                  <i className="mdi mdi-delete font-size-18" id="deletetooltip" />
+                  <UncontrolledTooltip placement="top" target="deletetooltip">
+                    Supprimer
+                  </UncontrolledTooltip>
+                </Link>
+                
+                
+                <Link
+                  to={`/ecommerce/pvariations`}
+                  className="text-danger"
+                  onClick={ () => {
+                      handleSetProduct(cellProps.row.original)
+                  } }
+                >
+                  <i className="mdi mdi-plus font-size-18" id="addooltip" />
+                  <UncontrolledTooltip placement="top" target="addooltip">
+                    Ajouter une variation
+                  </UncontrolledTooltip>
+                </Link>
+              </div>
+            );
+          },
+        },
+      ]},
+      [dispatch,modal]
+    );
 
-  // useEffect(() => {
-  //   setIsloading(true);
-  //   getProducts();
-  // }, []);
 
     useEffect(() => {
-    fetch(API_URL + "/products", {
-      headers: {
-        Authorization: "Bearer " + token,
-      },
-    })
-      .then((response) => response.json())
-      .then((response) => {
-        setProductList(response.data);
-        dispatch(getProductsSuccess(response));
-        setIsloading(false);
-      });
+      const getProd = async () => {
+        setIsloading(true);
+        await fetch(API_URL + "/products", {
+          headers: {
+            Authorization: "Bearer " + token,
+          },
+        })
+          .then((response) => response.json())
+          .then((response) => {
+            setProductList(response.data);
+            dispatch(getProductsSuccess(response));
+          });
+          setIsloading(false);
+      }
+      getProd();
   }, [dispatch]);
 
 
@@ -382,7 +510,7 @@ const ListProducts = (props) => {
       .then((array) => {
         dispatch(getCategoriesSuccess(array.data));
       });
-  }, []);
+  }, [dispatch]);
 
 
     useEffect(() => {
@@ -396,7 +524,7 @@ const ListProducts = (props) => {
         // setFilterClothes(array);
         dispatch(getBrandsSuccess(array.data));
       });
-  }, []);
+  }, [dispatch]);
   
   
   useEffect(() => {
@@ -409,155 +537,11 @@ const ListProducts = (props) => {
       .then((array) => {
         dispatch(getCollectionsSuccess(array.data));
       });
-  }, []);
-
-  const columns = useMemo(
-    () => [
-      {
-        Header: "#",
-        Cell: () => {
-          return <input type="checkbox" />;
-        },
-      },
-      {
-        Header: "Thumball",
-        accessor: "image",
-        disableFilters: true,
-        filterable: false,
-
-        accessor: (cellProps) => (
-          <>
-            {!cellProps.url ? (
-              <div className="avatar-xs">
-                <span className="avatar-title rounded-circle">
-                  {cellProps.name.charAt(0)}
-                </span>
-              </div>
-            ) : (
-              <div>
-                <img
-                  className="rounded-circle avatar-xs"
-                  src={ cellProps.url ? cellProps.url :  BASE_URL+'media/products/'+cellProps.image}
-                  alt=""
-                />
-              </div>
-            )}
-          </>
-        ),
-      },
-      {
-        Header: "Produit",
-        accessor: "name",
-        filterable: true,
-        Cell: (cellProps) => {
-          return <Name {...cellProps} />;
-        },
-      },
-      {
-        Header: "Catégorie",
-        accessor: "category",
-        filterable: true,
-        Cell: (cellProps) => {
-          return <Name {...cellProps} />;
-        },
-      },
-
-      {
-        Header: "Description",
-        accessor: "description",
-        filterable: true,
-        Cell: (cellProps) => {
-          return <Name {...cellProps} />;
-        },
-      },
-
-      {
-        Header: "Action",
-        Cell: (cellProps) => {
-          return (
-            <div className="d-flex gap-3">
-              <Link
-                to="#"
-                className="text-success"
-                onClick={() => {
-                  const data = cellProps.row.original;
-                  handleProductClick(data);
-                }}
-              >
-                <i className="mdi mdi-pencil font-size-18" id="edittooltip" />
-                <UncontrolledTooltip placement="top" target="edittooltip">
-                  Modifier
-                </UncontrolledTooltip>
-              </Link>
-              <Link
-                to="#"
-                className="text-danger"
-                onClick={() => {
-                  const data = cellProps.row.original;
-                  onClickDelete(data);
-                }}
-              >
-                <i className="mdi mdi-delete font-size-18" id="deletetooltip" />
-                <UncontrolledTooltip placement="top" target="deletetooltip">
-                  Supprimer
-                </UncontrolledTooltip>
-              </Link>
-              
-              
-              <Link
-                to={`/ecommerce/pvariations`}
-                className="text-danger"
-                onClick={ () => {
-                    handleSetProduct(cellProps.row.original)
-                } }
-              >
-                <i className="mdi mdi-plus font-size-18" id="addooltip" />
-                <UncontrolledTooltip placement="top" target="addooltip">
-                  Ajouter une variation
-                </UncontrolledTooltip>
-              </Link>
-            </div>
-          );
-        },
-      },
-    ],
-    []
-  );
+  }, [dispatch]);
 
   useEffect(() => {
     setProductList(products);
   }, [products]);
-
-  const toggle = () => {
-    setModal(!modal);
-  };
-
-  const handleProductClick = (arg) => {
-    const product = arg;
-
-    setProduct({
-      id: product.id,
-      name: product.name,
-      brand_id: product.brand_id,
-      description: product.description,
-      category_id: product.category_id,
-      collection_id: product.collection_id,
-      status: product.status,
-      quantity: product.quantity,
-      content: product.content,
-      images: product.images,
-      url: product.url,
-    });
-
-    setIsEdit(true);
-
-    toggle();
-  };  
-  
-  
-  const handleSetProduct = (arg) => {
-    dispatch(setProductSuccess(arg));
-  };
 
   var node = useRef();
   const onPaginationPageChange = (page) => {
